@@ -10,6 +10,7 @@ use App\Models\User;
 
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
+
 class AuthController extends Controller
 {
 
@@ -20,29 +21,28 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-        $credentials = $request->only('email', 'password');
-
-        $token = Auth::attempt($credentials);
-        if (!$token) {
+        try{
+            $request->validate([
+                'email' => 'required|string|email',
+                'password' => 'required|string',
+            ]);
+            $credentials = $request->only('email', 'password');
+            if (!$token = JWTAuth::attempt($credentials)) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+            $user = Auth::user();
             return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized',
-            ], 401);
-        }
-
-        $user = Auth::user();
-        return response()->json([
                 'status' => 'success',
                 'user' => $user,
                 'authorisation' => [
-                    'token' => $token,
+                    'accessToken' => $token,
                     'type' => 'bearer',
                 ]
             ]);
+
+        }catch(\Exception $e){
+            return response()->json($e->getMessage());
+        }
 
     }
     public function me()
@@ -71,7 +71,7 @@ class AuthController extends Controller
             'message' => 'User created successfully',
             'user' => $user,
             'authorisation' => [
-                'token' => $token,
+                'accessToken' => $token,
                 'type' => 'bearer',
             ]
         ]);
@@ -92,7 +92,7 @@ class AuthController extends Controller
             'status' => 'success',
             'user' => Auth::user(),
             'authorisation' => [
-                'token' => Auth::refresh(),
+                'accessToken' => Auth::refresh(),
                 'type' => 'bearer',
             ]
         ]);

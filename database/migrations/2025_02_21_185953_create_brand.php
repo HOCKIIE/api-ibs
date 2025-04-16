@@ -11,10 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('brand', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        if(!Schema::hasTable('brand')) {
+            Schema::create('brand', function (Blueprint $table) {
+                $table->engine = 'InnoDB';
+                $table->charset('utf8');
+                $table->collation('utf8_general_ci');
+                $table->id();
+                $table->integer('category')->nullable()->default(null)->comment('Category ID');
+                $table->text('image')->nullable()->default(null)->comment('Brand Image');
+                $table->text('name_th')->nullable()->default(null)->comment('Brand Name TH');
+                $table->text('name_en')->nullable()->default(null)->comment('Brand Name EN');
+                $table->text('name_jp')->nullable()->default(null)->comment('Brand Name JP');
+                $table->mediumText('description_th')->nullable()->default(null)->comment('Brand Description TH');
+                $table->mediumText('description_en')->nullable()->default(null)->comment('Brand Description EN');
+                $table->mediumText('description_jp')->nullable()->default(null)->comment('Brand Description JP');
+                $table->boolean('status')->default(1)->comment('Brand Status 1=Active,0=Inactive');
+                $table->boolean('is_deleted')->default(0)->comment('Brand Is Deleted 1=Deleted,0=Not Deleted');
+                $table->dateTime('deleted_at')->nullable()->default(null)->comment('Brand Deleted At');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
