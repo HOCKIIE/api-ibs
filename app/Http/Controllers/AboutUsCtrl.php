@@ -10,6 +10,7 @@ class AboutUsCtrl extends Controller
     public function index()
     {
         try {
+            $data = About::find(1);
             return response()->json([
                 'status' => true,
                 'message' => 'About Us',

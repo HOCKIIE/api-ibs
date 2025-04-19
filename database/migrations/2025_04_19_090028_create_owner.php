@@ -11,12 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if(!Schema::hasTable('contact')) {
-            Schema::create('contact', function (Blueprint $table) {
+        if(!Schema::hasTable('owner')) {
+            Schema::create('owner', function (Blueprint $table) {
                 $table->engine = 'InnoDB';
                 $table->charset('utf8');
                 $table->collation('utf8_general_ci');
                 $table->id();
+                $table->text('logo')->nullable();
+                $table->text('title')->nullable();
+                $table->text('address')->nullable();
+                $table->text('phone')->nullable();
+                $table->text('mobile')->nullable();
+                $table->longText('gmail')->nullable();
                 $table->timestamps();
             });
         }
@@ -27,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('contact');
+        Schema::dropIfExists('owner');
     }
 };

@@ -49,9 +49,11 @@ Route::middleware(['jwt.auth'])->group(function()
         Route::delete('/product/destroy/{id}','destroy')->where(['id'=>'[0-9]+']);
     });
     Route::controller(ContactUsCtrl::class)->group(function(){
+        Route::get('/contact','index');
         Route::put('/contact/update/{id}','update')->where(['id'=>'[0-9]+']);
     });
     Route::controller(AboutUsCtrl::class)->group(function(){
+        Route::get('/about}','index');
         Route::put('/about/update/{id}','update')->where(['id'=>'[0-9]+']);
     });
 

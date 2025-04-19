@@ -75,6 +75,7 @@ class UserCtrl extends Controller
         $data = new User;
         $data->role = $request->role;
         $data->title = $request->title;
+        $data->contact_sale = $request->contact_sale;
         $data->name = $request->name;
         $data->phone = $request->phone;
         $data->email = $request->email;
@@ -125,10 +126,11 @@ class UserCtrl extends Controller
         $data = User::findOrFail($id);
         $data->role = $request->role;
         $data->title = $request->title;
+        $data->contact_sale = $request->contact_sale;
         $data->name = $request->name;
         $data->email = $request->email;
         $data->phone = $request->phone;
-        if($data->password){
+        if($request->password){
             $data->password = bcrypt($request->password);
         }
         if($data->save()){
