@@ -68,7 +68,7 @@ class BrandCtrl extends Controller
                 'description_th' => $request->input('description_th'),
                 'description_en' => $request->input('description_en'),
                 'description_jp' => $request->input('description_jp'),
-                'status' => false, // Set status to 1 (active)
+                'status' => false,
             ]);
 
             return BrandResource::collection($brand);
@@ -94,7 +94,7 @@ class BrandCtrl extends Controller
                 'name_jp' => 'required|string|max:255',
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
-                'description_jp' => 'required|string',
+                'description_jp' => 'required|string'
             ]);
 
             // Handle image upload if provided

@@ -16,12 +16,12 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login','register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register']]);
     }
 
     public function login(Request $request)
     {
-        try{
+        try {
             $request->validate([
                 'email' => 'required|string|email',
                 'password' => 'required|string',
@@ -39,11 +39,9 @@ class AuthController extends Controller
                     'type' => 'bearer',
                 ]
             ]);
-
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json($e->getMessage());
         }
-
     }
     public function me()
     {
@@ -52,7 +50,8 @@ class AuthController extends Controller
             'user' => Auth::user(),
         ]);
     }
-    public function register(Request $request){
+    public function register(Request $request)
+    {
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',

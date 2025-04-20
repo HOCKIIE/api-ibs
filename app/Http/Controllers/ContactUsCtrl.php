@@ -22,13 +22,14 @@ class ContactUsCtrl extends Controller
         $data->address = $request->address;
         $data->phone = $request->phone;
         $data->mobile = $request->mobile;
+        $data->email = $request->email;
         $data->gmap = $request->gmap;
-        if($data->save()){
+        if ($data->save()) {
             $response = [
                 "status" => true,
-                "message"=> "Success, Data has been updated."
+                "message" => "Success, Data has been updated."
             ];
-        }else{
+        } else {
             $response = [
                 "status" => false,
                 "message" => "An error occurred!"

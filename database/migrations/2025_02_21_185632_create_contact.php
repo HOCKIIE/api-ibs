@@ -17,6 +17,14 @@ return new class extends Migration
                 $table->charset('utf8');
                 $table->collation('utf8_general_ci');
                 $table->id();
+                $table->text('title')->nullable();
+                $table->text('address')->nullable();
+                $table->text('phone')->nullable();
+                $table->text('mobile')->nullable();
+                $table->text('email')->nullable();
+                $table->text('gmap')->nullable();
+                $table->text('facebook')->nullable();
+                $table->text('line')->nullable();
                 $table->timestamps();
             });
         }
