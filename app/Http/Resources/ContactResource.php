@@ -18,10 +18,12 @@ class ContactResource extends JsonResource
         return [
             "id" => $this->id,
             "title" => $this->title,
+            "contact_sale" => $this->contact_sale,
             "address" => $this->address,
             "phone" => $this->phone,
             "mobile" => $this->mobile,
-            "gmap" => $this->gmap
+            "email" => $this->email,
+            "gmap" => $this->gmap,
         ];
     }
 }

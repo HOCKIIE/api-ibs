@@ -50,11 +50,11 @@ Route::middleware(['jwt.auth'])->group(function()
     });
     Route::controller(ContactUsCtrl::class)->group(function(){
         Route::get('/contact','index');
-        Route::put('/contact/update/{id}','update')->where(['id'=>'[0-9]+']);
+        Route::put('/contact/update','update');
     });
     Route::controller(AboutUsCtrl::class)->group(function(){
-        Route::get('/about}','index');
-        Route::put('/about/update/{id}','update')->where(['id'=>'[0-9]+']);
+        Route::get('/about','index');
+        Route::put('/about/update','update')->where(['id'=>'[0-9]+']);
     });
 
 
