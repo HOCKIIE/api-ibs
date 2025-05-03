@@ -146,6 +146,7 @@ class UserCtrl extends Controller
     public function destroy(Request $request)
     {
         $id = explode(',',$request->id);
+        User::whereIn('id',$id)->update(['status'=>0]);
         if(count($id) > 0){
             if(User::whereIn('id',$id)->delete()){
                 return response()->json(["status"=>true,"message"=>"Deleted!"],200);
