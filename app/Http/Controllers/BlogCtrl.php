@@ -43,13 +43,13 @@ class BlogCtrl extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'title_th' => 'required|string|max:255',
             'title_en' => 'required|string|max:255',
-            'title_jp' => 'required|string|max:255',
+            'title_ja' => 'required|string|max:255',
             'description_th' => 'required|string',
             'description_en' => 'required|string',
-            'description_jp' => 'required|string',
+            'description_ja' => 'required|string',
             'detail_th' => 'required|string',
             'detail_en' => 'required|string',
-            'detail_jp' => 'required|string',
+            'detail_ja' => 'required|string',
         ]);
 
         // Create a new blog post
