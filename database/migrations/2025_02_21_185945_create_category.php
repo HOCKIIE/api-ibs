@@ -17,16 +17,16 @@ return new class extends Migration
                 $table->charset('utf8');
                 $table->collation('utf8_general_ci');
                 $table->id();
-                $table->text('image')->nullable()->default(null)->comment('Category Image');
-                $table->text('name_th')->nullable()->default(null)->comment('Category Name TH');
-                $table->text('name_en')->nullable()->default(null)->comment('Category Name EN');
-                $table->text('name_jp')->nullable()->default(null)->comment('Category Name JP');
-                $table->mediumText('description_th')->nullable()->default(null)->comment('Category Description TH');
-                $table->mediumText('description_en')->nullable()->default(null)->comment('Category Description EN');
-                $table->mediumText('description_jp')->nullable()->default(null)->comment('Category Description JP');
-                $table->boolean('status')->default(1)->comment('Category Status 1=Active,0=Inactive');
-                $table->boolean('is_deleted')->default(0)->comment('Category Is Deleted 1=Deleted,0=Not Deleted');
-                $table->dateTime('deleted_at')->nullable()->default(null)->comment('Category Deleted At');
+                $table->text('image')->nullable()->default(null)->comment('Image');
+                $table->text('title_th')->nullable()->default(null)->comment('Title TH');
+                $table->text('title_en')->nullable()->default(null)->comment('Title EN');
+                $table->text('title_ja')->nullable()->default(null)->comment('Title JP');
+                $table->mediumText('description_th')->nullable()->default(null)->comment('Description TH');
+                $table->mediumText('description_en')->nullable()->default(null)->comment('Description EN');
+                $table->mediumText('description_ja')->nullable()->default(null)->comment('Description JA');
+                $table->boolean('status')->default(1)->comment('Status 1=Active,0=Inactive');
+                $table->boolean('is_deleted')->default(0)->comment('Is Deleted 1=Deleted,0=Not Deleted');
+                $table->dateTime('deleted_at')->nullable()->default(null)->comment('Deleted At');
                 $table->timestamps();
             });
         }

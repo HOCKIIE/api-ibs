@@ -19,9 +19,9 @@ return new class extends Migration
                 $table->id();
                 $table->integer('category')->nullable()->default(null)->comment('Category ID');
                 $table->text('image')->nullable()->default(null)->comment('Brand Image');
-                $table->text('name_th')->nullable()->default(null)->comment('Brand Name TH');
-                $table->text('name_en')->nullable()->default(null)->comment('Brand Name EN');
-                $table->text('name_jp')->nullable()->default(null)->comment('Brand Name JP');
+                $table->text('title_th')->nullable()->default(null)->comment('Title TH');
+                $table->text('title_en')->nullable()->default(null)->comment('Title EN');
+                $table->text('title_jp')->nullable()->default(null)->comment('Title JP');
                 $table->mediumText('description_th')->nullable()->default(null)->comment('Brand Description TH');
                 $table->mediumText('description_en')->nullable()->default(null)->comment('Brand Description EN');
                 $table->mediumText('description_jp')->nullable()->default(null)->comment('Brand Description JP');

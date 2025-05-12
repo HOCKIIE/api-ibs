@@ -11,8 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if(!Schema::hasTable('blog_category'))
-        {
+        if (!Schema::hasTable('blog_category')) {
             Schema::create('blog_category', function (Blueprint $table) {
                 $table->engine = 'InnoDB';
                 $table->charset('utf8');
@@ -23,7 +22,7 @@ return new class extends Migration
 
                 $table->foreign('blog_id')->references('id')->on('blog')->onDelete('cascade');
                 $table->foreign('category_id')->references('id')->on('category')->onDelete('cascade');
-                
+
                 $table->primary(['blog_id', 'category_id']);
 
                 $table->timestamps();
