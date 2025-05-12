@@ -10,6 +10,7 @@ class Category extends Model
 {
     use HasFactory, SoftDeletes;
     protected $table = 'category';
+    protected $primaryKey = 'id';
     protected $fillable = [
         'image',
         'name_th',
@@ -48,5 +49,10 @@ class Category extends Model
             ->where('is_deleted', 0)
             ->where('status', 1);
     }
-   
+
+    public function blogs()
+    {
+        return $this->belongsToMany(Blog::class, 'blog_category');
+    }
+
 }

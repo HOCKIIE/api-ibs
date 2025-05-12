@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if(!Schema::hasTable('owner')) {
+        if (!Schema::hasTable('owner')) {
             Schema::create('owner', function (Blueprint $table) {
                 $table->engine = 'InnoDB';
                 $table->charset('utf8');
@@ -19,10 +19,11 @@ return new class extends Migration
                 $table->id();
                 $table->text('logo')->nullable();
                 $table->text('title')->nullable();
+                $table->text('email')->nullable();
                 $table->text('address')->nullable();
                 $table->text('phone')->nullable();
                 $table->text('mobile')->nullable();
-                $table->longText('gmail')->nullable();
+                $table->longText('gmap')->nullable();
                 $table->timestamps();
             });
         }

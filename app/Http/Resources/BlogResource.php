@@ -18,18 +18,23 @@ class BlogResource extends JsonResource
         return [
             'id' => $this->id,
             'image' => $this->image,
-            'name_th' => $this->name_th,
-            'name_en' => $this->name_en,
-            'name_jp' => $this->name_jp,
+            'title_th' => $this->title_th,
+            'title_en' => $this->title_en,
+            'title_ja' => $this->title_ja,
+            'category' => $this->category,
             'description_th' => $this->description_th,
             'description_en' => $this->description_en,
-            'description_jp' => $this->description_jp,
-            'deiail_th' => $this->deiail_th,
-            'deiail_en' => $this->deiail_en,
-            'deiail_jp' => $this->deiail_jp,
+            'description_ja' => $this->description_ja,
+            'detail_th' => $this->detail_th,
+            'detail_en' => $this->detail_en,
+            'detail_ja' => $this->detail_ja,
             'status' => $this->status,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
+            'published_at' => $this->published_at,
+            'is_deleted' => $this->is_deleted,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at
         ];
     }
+    
 }

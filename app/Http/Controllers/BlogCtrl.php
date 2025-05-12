@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Blog;
 use App\Http\Resources\BlogResource;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+
 
 class BlogCtrl extends Controller
 {
@@ -15,7 +18,7 @@ class BlogCtrl extends Controller
     public function index()
     {
         try {
-            $data = Blog::all();
+            $data = Blog::with('categories')->all();
             return BlogResource::collection($data);
         } catch (\Exception $e) {
             return response()->json([
@@ -38,39 +41,71 @@ class BlogCtrl extends Controller
      */
     public function store(Request $request)
     {
-        // Validate the request data
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'title_th' => 'required|string|max:255',
-            'title_en' => 'required|string|max:255',
-            'title_ja' => 'required|string|max:255',
-            'description_th' => 'required|string',
-            'description_en' => 'required|string',
-            'description_ja' => 'required|string',
-            'detail_th' => 'required|string',
-            'detail_en' => 'required|string',
-            'detail_ja' => 'required|string',
-        ]);
+        try {
+            // Validate the request data
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'title_th' => 'required|string|max:255',
+                'title_en' => 'required|string|max:255',
+                'title_ja' => 'required|string|max:255',
+                'description_th' => 'required|string',
+                'description_en' => 'required|string',
+                'description_ja' => 'required|string',
+                'detail_th' => 'required|string',
+                'detail_en' => 'required|string',
+                'detail_ja' => 'required|string',
+            ]);
 
-        // Create a new blog post
-        $blogPost = Blog::create([
-            'title_th' => $request->input('title_th'),
-            'title_en' => $request->input('title_en'),
-            'title_jp' => $request->input('title_jp'),
-            'description_th' => $request->input('description_th'),
-            'description_en' => $request->input('description_en'),
-            'description_jp' => $request->input('description_jp'),
-            'detail_th' => $request->input('detail_th'),
-            'detail_en' => $request->input('detail_en'),
-            'detail_jp' => $request->input('detail_jp'),
-            'status' => false,
-        ]);
+            $imagePath = null;
+            if ($request->hasFile('image')) {
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Blog post created successfully',
-            'data' => $blogPost,
-        ], 201);
+                $file = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+                $manager = new ImageManager(new GdDriver());
+
+                $image = $manager->read($file->getPathname());
+                $image->resize(1200, null, function ($constraint) {
+                    // $constraint->aspectRatio();
+                    $constraint->upsize(); // Prevent upscaling if the image is smaller
+                });
+
+                $webpBinary = (string) $image->toWebp(80);
+
+                Storage::disk('public')->put('uploads/' . $filename, $webpBinary);
+                $imagePath = '/storage/uploads/' . $filename;
+            }
+
+
+            // Create a new blog post
+            $blog = Blog::create([
+                'image' => $imagePath,
+                'category' => $request->category,
+                'title_th' => $request->title_th,
+                'title_en' => $request->title_en,
+                'title_jp' => $request->title_jp,
+                'description_th' => $request->description_th,
+                'description_en' => $request->description_en,
+                'description_jp' => $request->description_jp,
+                'detail_th' => $request->detail_th,
+                'detail_en' => $request->detail_en,
+                'detail_jp' => $request->detail_jp,
+                'published_at' => $request->has('publish') ? now()->toDateTimeString() : NULL,
+            ]);
+            // store category
+            $blog->categories()->attach([1, 2, 3]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Blog post created successfully',
+                'data' => $blog,
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -79,15 +114,14 @@ class BlogCtrl extends Controller
     public function show(string $id)
     {
         try {
-            $data = Blog::findOrfail($id);
-            return BlogResource::collection($data);
+            $data = Blog::with('categories')->findOrfail($id);
+            return response()->json((new BlogResource($data))->resolve());
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
-            ],500);
+            ], 500);
         }
-        
     }
 
     /**
@@ -103,7 +137,7 @@ class BlogCtrl extends Controller
      */
     public function update(Request $request, string $id)
     {
-        try{
+        try {
             $data = Blog::findOrfail($id);
             $request->validate([
                 'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -128,6 +162,8 @@ class BlogCtrl extends Controller
                 $data->image = $path;
             }
 
+            // update category
+            $data->categories()->sync($request->category);
             // Update other fields
             $data->update($request->except(['image']));
 
@@ -136,7 +172,7 @@ class BlogCtrl extends Controller
                 'message' => 'Blog post updated successfully',
                 'data' => $data,
             ], 200);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
