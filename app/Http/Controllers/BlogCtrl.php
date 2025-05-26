@@ -15,10 +15,30 @@ class BlogCtrl extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $data = Blog::with('categories')->all();
+            $model = new Blog;
+            $status = $request->status;
+            $keyword = $request->keyword;
+            $limit = $request->limit ? $request->limit : 10;
+
+            $data = $model->when($request->status, function($query) use($status){
+                if($status == 'true'){
+                    $query->where('status',1);
+                }
+                if($status == 'false'){
+                    $query->where('status',0);
+                }
+            })
+            ->when($request->keyword, function($query) use($keyword){
+                $query->where('title_th',"like","%$keyword%")
+                    ->orWhere('title_en',"like","%$keyword%")
+                    ->orWhere('title_ja',"like","%$keyword%");
+            })
+            ->with('categories')
+            ->paginate($limit);
+
             return BlogResource::collection($data);
         } catch (\Exception $e) {
             return response()->json([
@@ -28,14 +48,20 @@ class BlogCtrl extends Controller
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function uploadImage($image)
     {
-        //
+        $file = $image;
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $manager = new ImageManager(new GdDriver());
+        $image = $manager->read($file->getPathname());
+        $image->resize(1200, null, function ($constraint) {
+            // $constraint->aspectRatio();
+            $constraint->upsize(); // Prevent upscaling if the image is smaller
+        });
+        $webpBinary = (string) $image->toWebp(80);
+        Storage::disk('public')->put('uploads/' . $filename, $webpBinary);
+        return '/storage/uploads/' . $filename;
     }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -58,29 +84,12 @@ class BlogCtrl extends Controller
 
             $imagePath = null;
             if ($request->hasFile('image')) {
-
-                $file = $request->file('image');
-                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-
-                $manager = new ImageManager(new GdDriver());
-
-                $image = $manager->read($file->getPathname());
-                $image->resize(1200, null, function ($constraint) {
-                    // $constraint->aspectRatio();
-                    $constraint->upsize(); // Prevent upscaling if the image is smaller
-                });
-
-                $webpBinary = (string) $image->toWebp(80);
-
-                Storage::disk('public')->put('uploads/' . $filename, $webpBinary);
-                $imagePath = '/storage/uploads/' . $filename;
+                $imagePath = $this->uploadImage($request);
             }
-
 
             // Create a new blog post
             $blog = Blog::create([
                 'image' => $imagePath,
-                'category' => $request->category,
                 'title_th' => $request->title_th,
                 'title_en' => $request->title_en,
                 'title_jp' => $request->title_jp,
@@ -93,7 +102,7 @@ class BlogCtrl extends Controller
                 'published_at' => $request->has('publish') ? now()->toDateTimeString() : NULL,
             ]);
             // store category
-            $blog->categories()->attach([1, 2, 3]);
+            $blog->categories()->attach($request->category);
 
             return response()->json([
                 'status' => true,
@@ -107,6 +116,7 @@ class BlogCtrl extends Controller
             ]);
         }
     }
+    
 
     /**
      * Display the specified resource.
@@ -138,40 +148,68 @@ class BlogCtrl extends Controller
     public function update(Request $request, string $id)
     {
         try {
-            $data = Blog::findOrfail($id);
             $request->validate([
-                'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-                'title_th' => 'string|max:255',
-                'title_en' => 'string|max:255',
-                'title_jp' => 'string|max:255',
-                'description_th' => 'string',
-                'description_en' => 'string',
-                'description_jp' => 'string',
-                'detail_th' => 'string',
-                'detail_en' => 'string',
-                'detail_jp' => 'string',
+                'title_th' => 'nullable|string|max:255',
+                'title_en' => 'nullable|string|max:255',
+                'title_ja' => 'nullable|string|max:255',
+                'description_th' => 'nullable|string',
+                'description_en' => 'nullable|string',
+                'description_ja' => 'nullable|string',
+                'detail_th' => 'nullable|string',
+                'detail_en' => 'nullable|string',
+                'detail_ja' => 'nullable|string',
             ]);
-
+            $data = Blog::findOrfail($id);
             if ($request->hasFile('image')) {
                 // Delete the old image if it exists
                 if ($data->image) {
                     Storage::delete($data->image);
                 }
-                // Store the new image and update the path in the database
-                $path = $request->file('image')->store('images/blogs', 'public');
-                $data->image = $path;
+                $data->image = $this->uploadImage($request->file('image'));
             }
 
             // update category
-            $data->categories()->sync($request->category);
+            $categories = $request->input('category', []);
+            // $data->fill([
+            //     'title_th' => $request->input('title_th'),
+            //     'title_en' => $request->input('title_en'),
+            //     'title_ja' => $request->input('title_ja'),
+            //     'description_th' => $request->input('description_th'),
+            //     'description_en' => $request->input('description_en'),
+            //     'description_ja' => $request->input('description_ja'),
+            //     'detail_th' => $request->input('detail_th'),
+            //     'detail_en' => $request->input('detail_en'),
+            //     'detail_ja' => $request->input('detail_ja'),
+            //     'updated_at' => now()->toDateTimeString(),
+            // ]);
+            $data->title_th = $request->title_th;
+            $data->title_en = $request->title_en;
+            $data->title_ja = $request->title_ja;
+            $data->description_th = $request->description_th;
+            $data->description_en = $request->description_en;
+            $data->description_ja = $request->description_ja;
+            $data->detail_th = $request->detail_th;
+            $data->detail_en = $request->detail_en;
+            $data->detail_ja = $request->detail_ja;
+            $data->updated_at = now()->toDateTimeString();
+            // 
+            if($request->has('published_at') && $data->published_at == null){
+                $data->published_at = $request->published_at;
+            }
             // Update other fields
-            $data->update($request->except(['image']));
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Blog post updated successfully',
-                'data' => $data,
-            ], 200);
+            if($data->save()){
+                $data->categories()->sync($categories);
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Blog post updated successfully',
+                    'data' => (new BlogResource(Blog::with('categories')->findOrfail($id)))->resolve()
+                ],200);
+            }else{
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Failed to update blog post',
+                ], 500);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -203,4 +241,5 @@ class BlogCtrl extends Controller
             ], 500);
         }
     }
+
 }

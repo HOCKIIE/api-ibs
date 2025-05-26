@@ -21,7 +21,7 @@ class BlogResource extends JsonResource
             'title_th' => $this->title_th,
             'title_en' => $this->title_en,
             'title_ja' => $this->title_ja,
-            'category' => $this->category,
+            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
             'description_th' => $this->description_th,
             'description_en' => $this->description_en,
             'description_ja' => $this->description_ja,
