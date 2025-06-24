@@ -84,7 +84,7 @@ class BlogCtrl extends Controller
 
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $imagePath = $this->uploadImage($request);
+                $imagePath = $this->uploadImage($request->file('image'));
             }
 
             // Create a new blog post
@@ -170,18 +170,7 @@ class BlogCtrl extends Controller
 
             // update category
             $categories = $request->input('category', []);
-            // $data->fill([
-            //     'title_th' => $request->input('title_th'),
-            //     'title_en' => $request->input('title_en'),
-            //     'title_ja' => $request->input('title_ja'),
-            //     'description_th' => $request->input('description_th'),
-            //     'description_en' => $request->input('description_en'),
-            //     'description_ja' => $request->input('description_ja'),
-            //     'detail_th' => $request->input('detail_th'),
-            //     'detail_en' => $request->input('detail_en'),
-            //     'detail_ja' => $request->input('detail_ja'),
-            //     'updated_at' => now()->toDateTimeString(),
-            // ]);
+
             $data->title_th = $request->title_th;
             $data->title_en = $request->title_en;
             $data->title_ja = $request->title_ja;

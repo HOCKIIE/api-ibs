@@ -9,13 +9,28 @@ use App\Http\Resources\CategoryResource;
 
 class CategoryCtrl extends Controller
 {
-    function index()
+    function index(Request $request)
     {
         try {
+            $status = $request->status;
+            $keyword = $request->keyword;
+            $limit = $request->limit ? $request->limit : 10;
 
-            $data = Category::where('status',true)->get();
-            return response()->json(CategoryResource::collection($data));
-            
+            $data = Category::when($request->status, function ($query) use ($status) {
+                if ($status == 'true') {
+                    $query->where('status', 1);
+                }
+                if ($status == 'false') {
+                    $query->where('status', 0);
+                }
+            })->when($request->keyword, function ($query) use ($keyword) {
+                $query->where('title_th', "like", "%$keyword%")
+                    ->orWhere('title_en', "like", "%$keyword%")
+                    ->orWhere('title_ja', "like", "%$keyword%");
+            })
+                ->paginate($limit);
+            return CategoryResource::collection($data);
+            // return response()->json(CategoryResource::collection($data));
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -26,20 +41,19 @@ class CategoryCtrl extends Controller
     function getCategoryWithProduct(Request $request)
     {
         $keyword = $request->keyword;
-        $categoryQuery = Category::
-        when($request->keyword, function($query) use($keyword){
-            $query->where(function($where) use($keyword){
-                $where->where('name_th','like',"%$keyword%")
-                ->orWhere('name_en','like',"%$keyword%")
-                ->orWhere('name_jp','like',"%$keyword%");
+        $categoryQuery = Category::when($request->keyword, function ($query) use ($keyword) {
+            $query->where(function ($where) use ($keyword) {
+                $where->where('name_th', 'like', "%$keyword%")
+                    ->orWhere('name_en', 'like', "%$keyword%")
+                    ->orWhere('name_jp', 'like', "%$keyword%");
             })
-            ->orWhereHas('brand', function($q) use($keyword) {
-                $q->where('name_th', 'like', "%$keyword%")
-                  ->orWhere('name_en', 'like', "%$keyword%")
-                  ->orWhere('name_jp', 'like', "%$keyword%");
-            });
+                ->orWhereHas('brand', function ($q) use ($keyword) {
+                    $q->where('name_th', 'like', "%$keyword%")
+                        ->orWhere('name_en', 'like', "%$keyword%")
+                        ->orWhere('name_jp', 'like', "%$keyword%");
+                });
         })
-        ->with('brand')->get();
+            ->with('brand')->get();
 
         // $brandQuery = Brand::
         // when($request->keyword, function($query) use($keyword) {
@@ -63,7 +77,7 @@ class CategoryCtrl extends Controller
 
     public function store(Request $request)
     {
-        try{
+        try {
             $request->validate([
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'name_th' => 'required|string|max:255',
@@ -76,7 +90,7 @@ class CategoryCtrl extends Controller
                 'detail_en' => 'required|string',
                 'detail_jp' => 'required|string',
             ]);
-    
+
             $category = Category::create([
                 'image' => $request->file('image')->store('images/category', 'public'),
                 'name_th' => $request->input('name_th'),
@@ -91,8 +105,7 @@ class CategoryCtrl extends Controller
                 'status' => false,
             ]);
             return response()->json(CategoryResource::collection($category));
-
-        } catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -101,7 +114,7 @@ class CategoryCtrl extends Controller
     }
     public function update(Request $request)
     {
-        try{
+        try {
             $request->validate([
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'name_th' => 'required|string|max:255',
@@ -115,7 +128,7 @@ class CategoryCtrl extends Controller
                 'detail_jp' => 'required|string',
                 'status' => 'required|boolean',
             ]);
-    
+
             $category = Category::find($request->id);
             if (!$category) {
                 return response()->json([
@@ -123,7 +136,7 @@ class CategoryCtrl extends Controller
                     'message' => "Category not found",
                 ], 404);
             }
-    
+
             $category->update([
                 'image' => $request->file('image')->store('images/category', 'public'),
                 'name_th' => $request->input('name_th'),
@@ -137,12 +150,12 @@ class CategoryCtrl extends Controller
                 'detail_jp' => $request->input('detail_jp'),
                 'status' => $request->input('status'),
             ]);
-    
+
             return response()->json([
                 "status" => true,
                 "message" => "Category updated successfully",
             ], 200);
-        } catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 "status" => false,
                 "message" => $e->getMessage(),
@@ -160,10 +173,10 @@ class CategoryCtrl extends Controller
                     'message' => "Category not found",
                 ], 404);
             }
-    
+
             // Soft delete the category
             $category->delete();
-    
+
             return response()->json([
                 'status' => true,
                 'message' => "Category deleted successfully",

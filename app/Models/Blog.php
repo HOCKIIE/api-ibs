@@ -29,7 +29,7 @@ class Blog extends Model
         'deleted_at',
     ];
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     public function categories()
     {

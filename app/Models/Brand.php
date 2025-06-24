@@ -51,11 +51,14 @@ class Brand extends Model
     {
         return $this->belongsTo(Category::class);
     }
-    public function product()
-    {
-        return $this->hasMany(Product::class, 'brand', 'id')
-            ->where('is_deleted', 0)
-            ->where('status', 1);
+    // public function product()
+    // {
+    //     return $this->hasMany(Product::class, 'brand', 'id')
+    //         ->where('is_deleted', 0)
+    //         ->where('status', 1);
+    // }
+    public function product(){
+        return $this->hasMany(Product::class,'product_brand','brand_id','product_id');
     }
 
 }

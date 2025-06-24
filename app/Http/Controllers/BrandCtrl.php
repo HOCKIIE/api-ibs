@@ -42,6 +42,19 @@ class BrandCtrl extends Controller
         }
     }
 
+    public function getBrand()
+    {
+        try{
+            $data = Brand::where('status',1)->get();
+            return response()->json(BrandResource::collection($data));
+        }catch(\Exception $e){
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function store(Request $request)
     {
         try {

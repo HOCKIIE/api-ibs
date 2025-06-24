@@ -18,27 +18,11 @@ class Product extends Model
         'detail_th',
         'detail_en',
         'detail_jp',
-        'category',
         'price',
         'status',
-        'is_deleted',
+        'published_at'
     ];
-    protected $casts = [
-        'image' => 'string',
-        'name_th' => 'string',
-        'name_en' => 'string',
-        'name_jp' => 'string',
-        'description_th' => 'string',
-        'description_en' => 'string',
-        'description_jp' => 'string',
-        'detail_th' => 'string',
-        'detail_en' => 'string',
-        'detail_jp' => 'string',
-        'category' => 'int',
-        'price' => 'float',
-        'status' => 'boolean',
-        'is_deleted' => 'boolean',
-    ];
+
     protected $dates = [
         'created_at',
         'updated_at',
@@ -48,13 +32,8 @@ class Product extends Model
     public $incrementing = true;
     public $timestamps = true;
 
-    public function category()
+    public function brand()
     {
-        return $this->belongsTo(Category::class, "id", "category");
-    }
-
-    public function getImageAttribute($value)
-    {
-        return url('storage/' . $value);
+        return $this->belongsToMany(Brand::class, 'product_brand', 'product_id', 'brand_id');
     }
 }
