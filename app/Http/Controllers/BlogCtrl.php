@@ -12,9 +12,6 @@ use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 
 class BlogCtrl extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         try {
@@ -23,21 +20,21 @@ class BlogCtrl extends Controller
             $keyword = $request->keyword;
             $limit = $request->limit ? $request->limit : 10;
 
-            $data = $model->when($request->status, function($query) use($status){
-                if($status == 'true'){
-                    $query->where('status',1);
+            $data = $model->when($request->status, function ($query) use ($status) {
+                if ($status == 'true') {
+                    $query->where('status', 1);
                 }
-                if($status == 'false'){
-                    $query->where('status',0);
+                if ($status == 'false') {
+                    $query->where('status', 0);
                 }
             })
-            ->when($request->keyword, function($query) use($keyword){
-                $query->where('title_th',"like","%$keyword%")
-                    ->orWhere('title_en',"like","%$keyword%")
-                    ->orWhere('title_ja',"like","%$keyword%");
-            })
-            ->with('categories')
-            ->paginate($limit);
+                ->when($request->keyword, function ($query) use ($keyword) {
+                    $query->where('title_th', "like", "%$keyword%")
+                        ->orWhere('title_en', "like", "%$keyword%")
+                        ->orWhere('title_ja', "like", "%$keyword%");
+                })
+                ->with('categories')
+                ->paginate($limit);
 
             return BlogResource::collection($data);
         } catch (\Exception $e) {
@@ -48,10 +45,10 @@ class BlogCtrl extends Controller
         }
     }
 
-    public function uploadImage($image)
+    public function uploadImage($request, $path)
     {
-        $file = $image;
-        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $file = $request->file('image');
+        $filename = time() . '_' . uniqid() . '.' . $request->file('image')->getClientOriginalExtension();;
         $manager = new ImageManager(new GdDriver());
         $image = $manager->read($file->getPathname());
         $image->resize(1200, null, function ($constraint) {
@@ -60,11 +57,9 @@ class BlogCtrl extends Controller
         });
         $webpBinary = (string) $image->toWebp(80);
         Storage::disk('public')->put('uploads/' . $filename, $webpBinary);
-        return '/storage/uploads/' . $filename;
+        return "/storage/uploads/$path" . $filename;
     }
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(Request $request)
     {
         try {
@@ -89,7 +84,6 @@ class BlogCtrl extends Controller
 
             // Create a new blog post
             $blog = Blog::create([
-                'image' => $imagePath,
                 'title_th' => $request->title_th,
                 'title_en' => $request->title_en,
                 'title_jp' => $request->title_jp,
@@ -103,7 +97,10 @@ class BlogCtrl extends Controller
             ]);
             // store category
             $blog->categories()->attach($request->category);
-
+            if ($blog->id && $request->hasFile('image')) {
+                $imagePath = $this->uploadImage($request, "blog/$blog->id/");
+                Blog::where('id', $blog->id)->update(['image' => $imagePath]);
+            }
             return response()->json([
                 'status' => true,
                 'message' => 'Blog post created successfully',
@@ -116,11 +113,7 @@ class BlogCtrl extends Controller
             ]);
         }
     }
-    
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         try {
@@ -134,17 +127,6 @@ class BlogCtrl extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         try {
@@ -161,16 +143,13 @@ class BlogCtrl extends Controller
             ]);
             $data = Blog::findOrfail($id);
             if ($request->hasFile('image')) {
-                // Delete the old image if it exists
                 if ($data->image) {
                     Storage::delete($data->image);
                 }
-                $data->image = $this->uploadImage($request->file('image'));
+                $data->image = $this->uploadImage($request, "blog/$id/");
             }
 
-            // update category
             $categories = $request->input('category', []);
-
             $data->title_th = $request->title_th;
             $data->title_en = $request->title_en;
             $data->title_ja = $request->title_ja;
@@ -182,18 +161,18 @@ class BlogCtrl extends Controller
             $data->detail_ja = $request->detail_ja;
             $data->updated_at = now()->toDateTimeString();
             // 
-            if($request->has('published_at') && $data->published_at == null){
+            if ($request->has('published_at') && $data->published_at == null) {
                 $data->published_at = $request->published_at;
             }
-            // Update other fields
-            if($data->save()){
+            //
+            if ($data->save()) {
                 $data->categories()->sync($categories);
                 return response()->json([
                     'status' => true,
                     'message' => 'Blog post updated successfully',
                     'data' => (new BlogResource(Blog::with('categories')->findOrfail($id)))->resolve()
-                ],200);
-            }else{
+                ], 200);
+            } else {
                 return response()->json([
                     'status' => false,
                     'message' => 'Failed to update blog post',
@@ -207,14 +186,10 @@ class BlogCtrl extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         try {
             $data = Blog::findOrfail($id);
-            // Delete the image if it exists
             if ($data->image) {
                 Storage::delete($data->image);
             }
@@ -230,5 +205,4 @@ class BlogCtrl extends Controller
             ], 500);
         }
     }
-
 }

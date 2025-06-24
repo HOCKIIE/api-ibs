@@ -165,7 +165,7 @@ class ProductCtrl extends Controller
                     $image = Str::after($data->image, '/storage/');
                     print_r(" >>> $image");
                     Storage::disk('public')->delete($image);
-                    
+
                     $data->image = $imagePath;
                     $data->save();
                 }
@@ -234,15 +234,15 @@ class ProductCtrl extends Controller
         $image = $manager->read($file->getPathname());
         $width = $image->width();
         $height = $image->height();
-        if(
+        if (
             $width > $height && $width > $this->imageHeight ||
             $width < $height && $width < $this->imageHeight
         ) {
-            $image->scale(height:$this->imageWidth)
-                ->crop($this->imageWidth, $this->imageHeight, 0,0,position: 'center');
+            $image->scale(height: $this->imageWidth)
+                ->crop($this->imageWidth, $this->imageHeight, 0, 0, position: 'center');
         }
-        if($width < $this->imageWidth) {
-            $image->scale(width:$this->imageWidth);
+        if ($width < $this->imageWidth) {
+            $image->scale(width: $this->imageWidth);
         }
 
         $webpBinary = (string) $image->toWebp(80);
