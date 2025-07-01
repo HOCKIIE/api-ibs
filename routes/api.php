@@ -31,6 +31,7 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::controller(CategoryCtrl::class)->group(function () {
             Route::get('/category', 'index');
+            Route::get('/category/show/{id}', 'show');
         });
         Route::controller(BrandCtrl::class)->group(function () {
             Route::get('/brand', 'index');

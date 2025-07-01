@@ -14,7 +14,7 @@ class CategoryCtrl extends Controller
         try {
             $status = $request->status;
             $keyword = $request->keyword;
-            $limit = $request->limit ? $request->limit : 10;
+            $limit = $request->limit? $request->limit : 10;
 
             $data = Category::when($request->status, function ($query) use ($status) {
                 if ($status == 'true') {
@@ -30,7 +30,7 @@ class CategoryCtrl extends Controller
             })
                 ->paginate($limit);
             return CategoryResource::collection($data);
-            // return response()->json(CategoryResource::collection($data));
+            // return response()->json(CategoryResource::collection($data));c
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -75,6 +75,19 @@ class CategoryCtrl extends Controller
         return response()->json(CategoryResource::collection($categoryQuery));
     }
 
+     public function show(string $id)
+    {
+        try {
+            $data = Category::findOrfail($id);
+            return response()->json((new CategoryResource($data))->resolve());
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function store(Request $request)
     {
         try {
@@ -85,10 +98,7 @@ class CategoryCtrl extends Controller
                 'name_jp' => 'required|string|max:255',
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
-                'description_jp' => 'required|string',
-                'detail_th' => 'required|string',
-                'detail_en' => 'required|string',
-                'detail_jp' => 'required|string',
+                'description_jp' => 'required|string'
             ]);
 
             $category = Category::create([

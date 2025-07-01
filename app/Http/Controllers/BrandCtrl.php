@@ -12,28 +12,27 @@ class BrandCtrl extends Controller
     public function index(Request $request)
     {
         try {
-
-            $skip = $request->skip ?? 0;
-            $limit = $request->limit ?? 10;
-
+            $status = $request->status;
             $keyword = $request->keyword;
+            $limit = $request->limit ? $request->limit : 10;
 
-            $data = Brand::when($keyword, function ($query) use ($keyword) {
-                $query->where(function ($where) use ($keyword) {
-                    $where->where('name_th', 'like', "%$keyword%")
-                        ->orWhere('name_en', 'like', "%$keyword%")
-                        ->orWhere('name_jp', 'like', "%$keyword%")
-                        ->orWhere('description_th', 'like', "%$keyword%")
-                        ->orWhere('description_en', 'like', "%$keyword%")
-                        ->orWhere('description_jp', 'like', "%$keyword%");
-                });
+            $data = Brand::when($request->status, function ($query) use ($status) {
+                if ($status == 'true') {
+                    $query->where('status', 1);
+                }
+                if ($status == 'false') {
+                    $query->where('status', 0);
+                }
             })
-            ->skip($skip)
-            ->take($limit)
-            ->get();
-
-            return response()->json(BrandResource::collection($data));
-
+                ->when($keyword, function ($query) use ($keyword) {
+                    $query->where(function ($where) use ($keyword) {
+                        $where->where('name_th', 'like', "%$keyword%")
+                            ->orWhere('name_en', 'like', "%$keyword%")
+                            ->orWhere('name_jp', 'like', "%$keyword%");
+                    });
+                })
+                ->paginate(10);
+            return BrandResource::collection($data);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -44,10 +43,10 @@ class BrandCtrl extends Controller
 
     public function getBrand()
     {
-        try{
-            $data = Brand::where('status',1)->get();
+        try {
+            $data = Brand::where('status', 1)->get();
             return response()->json(BrandResource::collection($data));
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -85,7 +84,6 @@ class BrandCtrl extends Controller
             ]);
 
             return BrandResource::collection($brand);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -128,7 +126,7 @@ class BrandCtrl extends Controller
             $brand->description_th = $request->input('description_th');
             $brand->description_en = $request->input('description_en');
             $brand->description_jp = $request->input('description_jp');
-            $brand->status = (Boolean)$request->status; // Set status to 1 (active)
+            $brand->status = (bool)$request->status; // Set status to 1 (active)
 
             // Save the updated brand
             $brand->save();
