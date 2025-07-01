@@ -31,13 +31,17 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::controller(CategoryCtrl::class)->group(function () {
             Route::get('/category', 'index');
-            Route::get('/category/show/{id}', 'show');
+            Route::post('/category/store', 'store');
+            Route::get('/category/show/{id}', 'show')->where(['id' => '[0-9]+']);
+            Route::put('/category/update/{id}', 'update')->where(['id' => '[0-9]+']);
+            Route::delete('/category/destroy', 'destroy');
         });
         Route::controller(BrandCtrl::class)->group(function () {
             Route::get('/brand', 'index');
-            Route::get('/brand/show/{id}', 'index')->where(['id' => '[0-9]+']);
-            Route::put('/brand/update/{id}', 'index')->where(['id' => '[0-9]+']);
-            Route::delete('/brand/destroy', 'index');
+            Route::post('/brand/store', 'store');
+            Route::get('/brand/show/{id}', 'show')->where(['id' => '[0-9]+']);
+            Route::put('/brand/update/{id}', 'update')->where(['id' => '[0-9]+']);
+            Route::delete('/brand/destroy', 'destroy');
         });
         Route::controller(UserCtrl::class)->group(function () {
             Route::get('/user', 'index');

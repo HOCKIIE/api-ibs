@@ -163,7 +163,6 @@ class ProductCtrl extends Controller
                 if ($request->hasFile('image')) {
                     $imagePath = $this->uploadImage($request->file('image'), $data->id);
                     $image = Str::after($data->image, '/storage/');
-                    print_r(" >>> $image");
                     Storage::disk('public')->delete($image);
 
                     $data->image = $imagePath;
