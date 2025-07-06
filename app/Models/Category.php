@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Brand;
+use App\Models\Blog;
 
 class Category extends Model
 {
@@ -45,7 +47,7 @@ class Category extends Model
 
     public function brand()
     {
-        return $this->hasMany(Brand::class, 'category', 'id')
+        return $this->belongsToMany(Brand::class,'brand_category', 'category_id', 'brand_id')
             ->where('is_deleted', 0)
             ->where('status', 1);
     }
@@ -53,6 +55,14 @@ class Category extends Model
     public function blogs()
     {
         return $this->belongsToMany(Blog::class, 'blog_category', 'category_id', 'blog_id');
+    }
+
+    function getImageAttribute($value)
+    {
+        if ($value) {
+            return asset($value);
+        }
+        return null;
     }
 
 }

@@ -42,7 +42,7 @@ class CategoryCtrl extends Controller
             })
                 ->paginate($limit);
             return CategoryResource::collection($data);
-            // return response()->json(CategoryResource::collection($data));c
+
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -50,22 +50,49 @@ class CategoryCtrl extends Controller
             ], 500);
         }
     }
+
+    function getCategory(Request $request)
+    {
+        $keyword = $request->keyword;
+        $data = Category::where('status',1)->when($request->keyword, function ($query) use ($keyword) {
+            $query->where(function ($where) use ($keyword) {
+                $where->where('title_th', 'like', "%$keyword%")
+                    ->orWhere('title_en', 'like', "%$keyword%")
+                    ->orWhere('title_ja', 'like', "%$keyword%");
+            });
+        })->get();
+        return response()->json(CategoryResource::collection($data));
+    }
+    function getCategoryWithBrand(Request $request)
+    {
+        $keyword = $request->keyword;
+        $data = Category::when($request->keyword, function ($query) use ($keyword) {
+            $query->where(function ($where) use ($keyword) {
+                $where->where('title_th', 'like', "%$keyword%")
+                    ->orWhere('title_en', 'like', "%$keyword%")
+                    ->orWhere('title_ja', 'like', "%$keyword%");
+            });
+        })
+        ->with('brand')->get();
+
+        return response()->json(CategoryResource::collection($data));
+    }
     function getCategoryWithProduct(Request $request)
     {
         $keyword = $request->keyword;
-        $categoryQuery = Category::when($request->keyword, function ($query) use ($keyword) {
+        $data = Category::when($request->keyword, function ($query) use ($keyword) {
             $query->where(function ($where) use ($keyword) {
-                $where->where('name_th', 'like', "%$keyword%")
-                    ->orWhere('name_en', 'like', "%$keyword%")
-                    ->orWhere('name_ja', 'like', "%$keyword%");
+                $where->where('title_th', 'like', "%$keyword%")
+                    ->orWhere('title_en', 'like', "%$keyword%")
+                    ->orWhere('title_ja', 'like', "%$keyword%");
             })
                 ->orWhereHas('brand', function ($q) use ($keyword) {
-                    $q->where('name_th', 'like', "%$keyword%")
-                        ->orWhere('name_en', 'like', "%$keyword%")
-                        ->orWhere('name_ja', 'like', "%$keyword%");
+                    $q->where('title_th', 'like', "%$keyword%")
+                        ->orWhere('title_en', 'like', "%$keyword%")
+                        ->orWhere('title_ja', 'like', "%$keyword%");
                 });
         })
-            ->with('brand')->get();
+        ->with('brand')->get();
 
         // $brandQuery = Brand::
         // when($request->keyword, function($query) use($keyword) {
@@ -84,7 +111,7 @@ class CategoryCtrl extends Controller
         // // รวมผลลัพธ์
         // $combinedResults = $categoryResults->merge($brandResults);
 
-        return response()->json(CategoryResource::collection($categoryQuery));
+        return response()->json(CategoryResource::collection($data));
     }
 
      public function show(string $id)
@@ -113,20 +140,35 @@ class CategoryCtrl extends Controller
                 'description_ja' => 'required|string'
             ]);
 
-            $category = Category::create([
-                'image' => $request->file('image')->store('images/category', 'public'),
-                'name_th' => $request->input('name_th'),
-                'name_en' => $request->input('name_en'),
-                'name_ja' => $request->input('name_ja'),
-                'description_th' => $request->input('description_th'),
-                'description_en' => $request->input('description_en'),
-                'description_ja' => $request->input('description_ja'),
-                'detail_th' => $request->input('detail_th'),
-                'detail_en' => $request->input('detail_en'),
-                'detail_ja' => $request->input('detail_ja'),
-                'status' => false,
-            ]);
-            return response()->json(CategoryResource::collection($category));
+            $data = new Category;
+            $data->name_th = $request->name_th;
+            $data->name_en = $request->name_en;
+            $data->name_ja = $request->name_ja;
+            $data->description_th = $request->description_th;
+            $data->description_en = $request->description_en;
+            $data->description_ja = $request->description_ja;
+            $data->detail_th = $request->detail_th;
+            $data->detail_en = $request->detail_en;
+            $data->detail_ja = $request->detail_ja;
+            $data->status = false;
+
+            if($data->save()) {
+                if ($request->hasFile('image')) {
+                    $data->image = $this->uploadImage($request->file('image'), $data->id);
+                    $data->save();
+                }
+                return response()->json([
+                    'status' => true,
+                    'message' => "Category created successfully",
+                    'data' => (new CategoryResource($data))->resolve()
+                ], 201);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => "Failed to create category",
+                ], 500);
+            }
+            
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -167,7 +209,7 @@ class CategoryCtrl extends Controller
                 return response()->json([
                     'status' => true,
                     'message' => "Category updated successfully",
-                    'data' => (new CategoryResource(Category::findOrfail($id)))->resolve()
+                    'data' => (new CategoryResource(Category::findOrfail($id)->with('brand')))->resolve()
                 ], 200);
             } else {
                 return response()->json([

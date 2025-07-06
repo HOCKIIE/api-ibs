@@ -6,9 +6,21 @@ use Illuminate\Http\Request;
 use App\Models\Brand;
 use App\Http\Resources\BrandResource;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Illuminate\Support\Str;
 
 class BrandCtrl extends Controller
 {
+    protected $imageWidth;
+    protected $imageHeight;
+
+    public function __construct()
+    {
+        $this->imageWidth = env('BRAND_IMAGE_WIDTH', 1000);
+        $this->imageHeight = env('BRAND_IMAGE_HEIGHT', 1000);
+    }
+
     public function index(Request $request)
     {
         try {
@@ -24,15 +36,29 @@ class BrandCtrl extends Controller
                     $query->where('status', 0);
                 }
             })
-                ->when($keyword, function ($query) use ($keyword) {
-                    $query->where(function ($where) use ($keyword) {
-                        $where->where('name_th', 'like', "%$keyword%")
-                            ->orWhere('name_en', 'like', "%$keyword%")
-                            ->orWhere('name_jp', 'like', "%$keyword%");
-                    });
-                })
-                ->paginate(10);
+            ->when($keyword, function ($query) use ($keyword) {
+                $query->where(function ($where) use ($keyword) {
+                    $where->where('name_th', 'like', "%$keyword%")
+                        ->orWhere('name_en', 'like', "%$keyword%")
+                        ->orWhere('name_jp', 'like', "%$keyword%");
+                });
+            })
+            ->paginate($limit);
             return BrandResource::collection($data);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function show(Request $request)
+    {
+        try {
+            $data = Brand::with('categories')->findOrFail($request->id);
+            return response()->json((new BrandResource($data))->resolve());
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -60,30 +86,49 @@ class BrandCtrl extends Controller
             // Validate the request data
             $request->validate([
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'name_th' => 'required|string|max:255',
-                'name_en' => 'required|string|max:255',
-                'name_jp' => 'required|string|max:255',
+                'title_th' => 'required|string|max:255',
+                'title_en' => 'required|string|max:255',
+                'title_ja' => 'required|string|max:255',
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
-                'description_jp' => 'required|string',
+                'description_ja' => 'required|string',
+                'category' => 'exists:category,id', // Validate category as an array of existing IDs
             ]);
 
             // Handle image upload
             $path = $request->file('image')->store('images/brand');
 
             // Create a new brand
-            $brand = Brand::create([
-                'image' => $path,
-                'name_th' => $request->input('name_th'),
-                'name_en' => $request->input('name_en'),
-                'name_jp' => $request->input('name_jp'),
-                'description_th' => $request->input('description_th'),
-                'description_en' => $request->input('description_en'),
-                'description_jp' => $request->input('description_jp'),
-                'status' => false,
-            ]);
+            $data = new Brand;
+            $data->image = $path;
+            $data->title_th = $request->title_th;
+            $data->title_en = $request->title_en;
+            $data->title_ja = $request->title_ja;
+            $data->description_th = $request->description_th;
+            $data->description_en = $request->description_en;
+            $data->description_ja = $request->description_ja;
+            $data->status = false;
+            
+            if($data->save())
+            {
+                $data->categories()->attach($request->category);
+                if($request->hasFile('image')){
+                    // Store the image and get its path
+                    $data->image = $this->uploadImage($request->file('image'), $data->id);
+                    $data->save();
+                }
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Brand created successfully.',
+                    'data' => (new BrandResource(Brand::findOrfail($data->id)))->resolve(),
+                ], 201);
+            }else{
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Failed to create brand.',
+                ], 500);
+            }
 
-            return BrandResource::collection($brand);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -95,47 +140,51 @@ class BrandCtrl extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $brand = Brand::findOrFail($id);
+            $data = Brand::findOrFail($id);
 
             // Validate the request data
             $request->validate([
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'name_th' => 'required|string|max:255',
-                'name_en' => 'required|string|max:255',
-                'name_jp' => 'required|string|max:255',
+                'title_th' => 'required|string|max:255',
+                'title_en' => 'required|string|max:255',
+                'title_ja' => 'required|string|max:255',
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
-                'description_jp' => 'required|string'
+                'description_ja' => 'required|string'
             ]);
 
-            // Handle image upload if provided
-            if ($request->hasFile('image')) {
-                // Delete the old image if it exists
-                if ($brand->image) {
-                    Storage::delete($brand->image);
+            // Update the brand details
+            $data->title_th = $request->title_th;
+            $data->title_en = $request->title_en;
+            $data->title_ja = $request->title_ja;
+            $data->description_th = $request->description_th;
+            $data->description_en = $request->description_en;
+            $data->description_ja = $request->description_ja;
+            $data->status = (bool)$request->status; // Set status to 1 (active)
+            $categories = $request->input('category', []);
+
+            // Save the updated data
+            if($data->save())
+            {
+                $data->categories()->sync($categories);
+                if ($request->hasFile('image')) {
+                    $image = Str::after($data->image, '/storage/');
+                    Storage::disk('public')->delete($image);
+                    $data->image = $this->uploadImage($request->file('image'), $id);
+                    $data->save();
                 }
-                // Store the new image and get its path
-                $path = $request->file('image')->store('images/brand');
-                $brand->image = $path;
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Brand updated successfully.',
+                    'data' => (new BrandResource(Brand::with('categories')->findOrfail($id)))->resolve(),
+                ], 200);
+            }else{
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Failed to update brand.',
+                ], 500);
             }
 
-            // Update the brand details
-            $brand->name_th = $request->input('name_th');
-            $brand->name_en = $request->input('name_en');
-            $brand->name_jp = $request->input('name_jp');
-            $brand->description_th = $request->input('description_th');
-            $brand->description_en = $request->input('description_en');
-            $brand->description_jp = $request->input('description_jp');
-            $brand->status = (bool)$request->status; // Set status to 1 (active)
-
-            // Save the updated brand
-            $brand->save();
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Brand updated successfully.',
-                'data' => new BrandResource($brand),
-            ], 200);
+            
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -147,15 +196,12 @@ class BrandCtrl extends Controller
     {
         try {
             $brand = Brand::findOrFail($id);
-
             // Delete the image if it exists
             if ($brand->image) {
                 Storage::delete($brand->image);
             }
-
             // Soft delete the brand
             $brand->delete();
-
             return response()->json([
                 'status' => true,
                 'message' => 'Brand deleted successfully.',
@@ -167,4 +213,29 @@ class BrandCtrl extends Controller
             ], 500);
         }
     }
+
+    public function uploadImage($image, $id = null)
+    {
+        $file = $image;
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $manager = new ImageManager(new GdDriver());
+        $image = $manager->read($file->getPathname());
+        $width = $image->width();
+        $height = $image->height();
+        if (
+            $width > $height && $width > $this->imageHeight ||
+            $width < $height && $width < $this->imageHeight
+        ) {
+            $image->scale(height: $this->imageWidth)
+                ->crop($this->imageWidth, $this->imageHeight, 0, 0, position: 'center');
+        }
+        if ($width < $this->imageWidth) {
+            $image->scale(width: $this->imageWidth);
+        }
+
+        $webpBinary = (string) $image->toWebp(80);
+        Storage::disk('public')->put("uploads/category/$id/$filename", $webpBinary);
+        return "/storage/uploads/category/$id/$filename";
+    }
+    
 }

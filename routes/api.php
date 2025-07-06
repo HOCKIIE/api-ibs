@@ -18,9 +18,9 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::controller(CategoryCtrl::class)->group(function () {
-    Route::get('/category', 'index');
-    Route::get('/category/product', 'getCategoryWithProduct');
-    Route::get('/category/{id}', 'getCategoryWithProduct')->where(['id' => '[0-9]+']);
+    Route::get('/category', 'getCategory');
+    Route::get('/category/brand', 'getCategoryWithBrand');
+    Route::get('/category/{id}', 'getCategoryById')->where(['id' => '[0-9]+']);
 });
 Route::controller(BrandCtrl::class)->group(function () {
     Route::get('/brand', 'getBrand');

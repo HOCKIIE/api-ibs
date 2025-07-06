@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,6 +25,7 @@ class BrandResource extends JsonResource
             'description_th' => $this->description_th,
             'description_en' => $this->description_en,
             'description_ja' => $this->description_ja,
+            'categories'=> CategoryResource::collection($this->whenLoaded('categories')),
             'status' => $this->status,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
