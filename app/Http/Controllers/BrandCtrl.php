@@ -38,9 +38,9 @@ class BrandCtrl extends Controller
             })
             ->when($keyword, function ($query) use ($keyword) {
                 $query->where(function ($where) use ($keyword) {
-                    $where->where('name_th', 'like', "%$keyword%")
-                        ->orWhere('name_en', 'like', "%$keyword%")
-                        ->orWhere('name_jp', 'like', "%$keyword%");
+                    $where->where('title_th', 'like', "%$keyword%")
+                        ->orWhere('title_en', 'like', "%$keyword%")
+                        ->orWhere('title_ja', 'like', "%$keyword%");
                 });
             })
             ->paginate($limit);
@@ -107,7 +107,7 @@ class BrandCtrl extends Controller
             $data->description_th = $request->description_th;
             $data->description_en = $request->description_en;
             $data->description_ja = $request->description_ja;
-            $data->status = false;
+            $data->status = $request->status || false;
             
             if($data->save())
             {

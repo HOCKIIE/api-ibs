@@ -40,7 +40,7 @@ class CategoryCtrl extends Controller
                     ->orWhere('title_en', "like", "%$keyword%")
                     ->orWhere('title_ja', "like", "%$keyword%");
             })
-                ->paginate($limit);
+            ->paginate($limit);
             return CategoryResource::collection($data);
 
         } catch (\Exception $e) {
@@ -71,9 +71,15 @@ class CategoryCtrl extends Controller
                 $where->where('title_th', 'like', "%$keyword%")
                     ->orWhere('title_en', 'like', "%$keyword%")
                     ->orWhere('title_ja', 'like', "%$keyword%");
+            })
+            ->orWhereHas('brand', function ($q) use ($keyword) {
+                $q->where('title_th', 'like', "%$keyword%");
+                $q->orWhere('title_en', 'like', "%$keyword%");
+                $q->orWhere('title_ja', 'like', "%$keyword%");
             });
         })
-        ->with('brand')->get();
+        ->with('brand')
+        ->get();
 
         return response()->json(CategoryResource::collection($data));
     }

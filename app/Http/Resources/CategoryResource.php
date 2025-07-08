@@ -15,6 +15,7 @@ class CategoryResource extends JsonResource
     public function toArray(Request $request): array
     {
         // return parent::toArray($request);
+        $keyword = request()->keyword;
         return [
             'id' => $this->id,
             'image' => $this->image,
@@ -25,7 +26,15 @@ class CategoryResource extends JsonResource
             'description_en' => $this->description_en,
             'description_ja' => $this->description_ja,
             'status' => $this->status,
-            'brand' => BrandResource::collection($this->whenLoaded('brand')),
+            'brand' => BrandResource::collection(
+                $this->whenLoaded('brand')
+                    ->filter(function ($brand) use ($keyword) {
+                        return !$keyword 
+                        || stripos($brand->title_th, $keyword) !== false
+                        || stripos($brand->title_en, $keyword) !== false
+                        || stripos($brand->title_ja, $keyword) !== false;
+                    })
+            ),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];

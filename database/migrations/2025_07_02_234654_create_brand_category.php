@@ -21,7 +21,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('category_id');
 
                 $table->foreign('brand_id')->references('id')->on('brand')->onDelete('cascade');
-                $table->foreign('category_id')->references('id')->on('brand')->onDelete('cascade');
+                $table->foreign('category_id')->references('id')->on('category')->onDelete('cascade');
 
                 $table->primary(['brand_id', 'category_id']);
 
