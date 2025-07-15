@@ -235,7 +235,7 @@ class BrandCtrl extends Controller
 
         $webpBinary = (string) $image->toWebp(80);
         Storage::disk('public')->put("uploads/category/$id/$filename", $webpBinary);
-        return "/storage/uploads/category/$id/$filename";
+        return "/storage/uploads/brand/$id/$filename";
     }
     
 }

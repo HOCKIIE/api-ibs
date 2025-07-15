@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AboutResource;
 use App\Models\About;
 use Illuminate\Http\Request;
 use Stevebauman\Purify\Facades\Purify;
@@ -11,8 +12,8 @@ class AboutUsCtrl extends Controller
     public function index()
     {
         try {
-            $data = About::find(1);
-            return response()->json($data);
+            $data = About::findOrFail(1);
+            return response()->json((new AboutResource($data))->resolve());
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -24,9 +25,12 @@ class AboutUsCtrl extends Controller
     {
         try{
             $data = About::first();
-            $data->title_th = Purify::clean($request->get('title_th'));
-            $data->title_en = Purify::clean($request->get('title_en'));
-            $data->title_jp = Purify::clean($request->get('title_jp'));
+            $data->title_th = Purify::clean($request->title_th);
+            $data->title_en = Purify::clean($request->title_en);
+            $data->title_jp = Purify::clean($request->title_jp);
+            $data->detail_th = Purify::clean($request->detail_th);
+            $data->detail_en = Purify::clean($request->detail_en);
+            $data->detail_jp = Purify::clean($request->detail_jp);
             if($data->save()){
                 $response = [
                     'status'=> true,

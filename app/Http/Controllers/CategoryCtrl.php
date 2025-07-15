@@ -182,7 +182,7 @@ class CategoryCtrl extends Controller
             ], 500);
         }
     }
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
         try {
             $request->validate([
@@ -194,7 +194,7 @@ class CategoryCtrl extends Controller
                 'description_ja' => 'required|string',
             ]);
 
-            $data = Category::findOrfail($id);
+            $data = Category::findOrfail($request->id);
             $data->title_th = $request->title_th;
             $data->title_en = $request->title_en;
             $data->title_ja = $request->title_ja;
@@ -205,7 +205,7 @@ class CategoryCtrl extends Controller
             if($data->save()) {
                 $imagePath = null;
                 if ($request->hasFile('image')) {
-                    $imagePath = $this->uploadImage($request->file('image'), $id);
+                    $imagePath = $this->uploadImage($request->file('image'), $request->id);
                     $image = Str::after($data->image, '/storage/');
                     Storage::disk('public')->delete($image);
     
@@ -215,7 +215,7 @@ class CategoryCtrl extends Controller
                 return response()->json([
                     'status' => true,
                     'message' => "Category updated successfully",
-                    'data' => (new CategoryResource(Category::findOrfail($id)->with('brand')))->resolve()
+                    'data' => (new CategoryResource(Category::with('brand')->findOrfail($request->id)))->resolve()
                 ], 200);
             } else {
                 return response()->json([

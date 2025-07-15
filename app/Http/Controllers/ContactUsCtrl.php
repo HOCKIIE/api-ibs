@@ -18,8 +18,12 @@ class ContactUsCtrl extends Controller
     public function update(Request $request)
     {
         $data = Owner::find(1);
-        $data->title = $request->title;
-        $data->address = $request->address;
+        $data->title_th = $request->title_th;
+        $data->title_en = $request->title_en;
+        $data->title_ja = $request->title_ja;
+        $data->address_th = $request->address_th;
+        $data->address_en = $request->address_en;
+        $data->address_ja = $request->address_ja;
         $data->phone = $request->phone;
         $data->mobile = $request->mobile;
         $data->email = $request->email;

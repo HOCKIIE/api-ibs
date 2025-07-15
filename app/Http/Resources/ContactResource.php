@@ -17,9 +17,13 @@ class ContactResource extends JsonResource
         // return parent::toArray($request);
         return [
             "id" => $this->id,
-            "title" => $this->title,
+            "title_th" => $this->title_th,
+            "title_en" => $this->title_en,
+            "title_ja" => $this->title_ja,
             "contact_sale" => $this->contact_sale,
-            "address" => $this->address,
+            "address_th" => $this->address_th,
+            "address_en" => $this->address_en,
+            "address_ja" => $this->address_ja,
             "phone" => $this->phone,
             "mobile" => $this->mobile,
             "email" => $this->email,

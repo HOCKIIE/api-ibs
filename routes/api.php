@@ -26,6 +26,10 @@ Route::controller(BrandCtrl::class)->group(function () {
     Route::get('/brand', 'getBrand');
 });
 
+Route::controller(AboutUsCtrl::class)->group(function(){
+    Route::get('/about-us','index');
+});
+
 Route::middleware(['jwt.auth'])->group(function () {
     Route::prefix('admin')->group(function () {
         Route::get('me', [AuthController::class, 'me']);

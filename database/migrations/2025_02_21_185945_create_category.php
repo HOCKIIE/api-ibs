@@ -16,7 +16,7 @@ return new class extends Migration
                 $table->engine = 'InnoDB';
                 $table->charset('utf8');
                 $table->collation('utf8_general_ci');
-                $table->id();
+                $table->bigIncrements('id');
                 $table->text('image')->nullable()->default(null)->comment('Image');
                 $table->text('title_th')->nullable()->default(null)->comment('Title TH');
                 $table->text('title_en')->nullable()->default(null)->comment('Title EN');
