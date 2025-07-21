@@ -30,6 +30,12 @@ Route::controller(AboutUsCtrl::class)->group(function(){
     Route::get('/about-us','index');
 });
 
+Route::controller(ContactUsCtrl::class)->group(function () {
+    Route::get('/owner', 'index');
+    Route::get('/sales', 'salesData');
+    Route::post('/contact-us', 'store');
+});
+
 Route::middleware(['jwt.auth'])->group(function () {
     Route::prefix('admin')->group(function () {
         Route::get('me', [AuthController::class, 'me']);

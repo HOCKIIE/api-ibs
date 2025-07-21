@@ -107,6 +107,10 @@ class BrandCtrl extends Controller
             $data->description_th = $request->description_th;
             $data->description_en = $request->description_en;
             $data->description_ja = $request->description_ja;
+            $data->detail_th = $request->detail_th;
+            $data->detail_en = $request->detail_en;
+            $data->detail_ja = $request->detail_ja;
+            $data->website = $request->website;
             $data->status = $request->status || false;
             
             if($data->save())
@@ -159,6 +163,10 @@ class BrandCtrl extends Controller
             $data->description_th = $request->description_th;
             $data->description_en = $request->description_en;
             $data->description_ja = $request->description_ja;
+            $data->detail_th = $request->detail_th;
+            $data->detail_en = $request->detail_en;
+            $data->detail_ja = $request->detail_ja;
+            $data->website = $request->website;
             $data->status = (bool)$request->status; // Set status to 1 (active)
             $categories = $request->input('category', []);
 
