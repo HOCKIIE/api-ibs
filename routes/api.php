@@ -10,11 +10,16 @@ use App\Http\Controllers\BrandCtrl;
 use App\Http\Controllers\ProductCtrl;
 use App\Http\Controllers\UserCtrl;
 
+Route::get('/',function(){
+    return response()->json(['message'=>'Welcom to IBS Machinex API']);
+});
+
 Route::controller(AuthController::class)->group(function () {
     Route::put('login', 'login');
     Route::post('register', 'register');
     Route::put('logout', 'logout');
     Route::put('refresh', 'refresh');
+    Route::get('me', 'me');
 });
 
 Route::controller(CategoryCtrl::class)->group(function () {

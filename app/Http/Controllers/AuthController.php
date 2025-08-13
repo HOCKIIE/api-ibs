@@ -3,12 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTFactory;
+use PHPOpenSourceSaver\JWTAuth\Exceptions\JWTException;
+use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenExpiredException;
+use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException;
+use Illuminate\Support\Facades\Log;
 
 
 class AuthController extends Controller
@@ -16,7 +22,7 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh','me', 'logout']]);
     }
 
     public function login(Request $request)
@@ -31,24 +37,61 @@ class AuthController extends Controller
                 return response()->json(['message' => 'Unauthorized'], 401);
             }
             $user = Auth::user();
-            return response()->json([
+            $payload = JWTFactory::customClaims([
+                'type' => 'refresh',
+                'exp' => now()->addDay()->timestamp, // อายุ 1 วัน
+                'sub' => $user->getJWTIdentifier(),  // สำคัญมาก ต้องมี
+            ])->make();
+            $refreshToken = JWTAuth::encode($payload)->get();
+
+            return response()
+            ->json([
                 'status' => 'success',
                 'user' => $user,
                 'authorisation' => [
                     'accessToken' => $token,
                     'type' => 'bearer',
                 ]
-            ]);
+            ])
+            ->cookie(
+                'accessToken',  // name
+                $token,  // value
+                60,  // expire
+                '/',  // path
+                'api-ibs.test',  // domain
+                true,  // secure
+                true,  // HttpOnly ✅
+                false,  // raw
+                'None' // SameSite
+            )
+            ->cookie('refreshToken', $refreshToken, 1440, '/', 'api-ibs.test', true, true, false, 'None');
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
         }
     }
-    public function me()
+    public function me(Request $request)
     {
-        return response()->json([
-            'status' => 'success',
-            'user' => Auth::user(),
-        ]);
+        $token = $request->cookie('accessToken');
+        if (!$token) {
+            return response()->json(['message' => 'Unauthenticated (no token)'], 401);
+        }
+        try {
+            $user = JWTAuth::setToken($token)->authenticate();
+            if (!$user) {
+                return response()->json(['message' => 'User not found'], 404);
+            }
+            return response()->json([
+                'status' => 'success',
+                'accessToken' => $request->cookie('accessToken'),
+                'user' => $user,
+            ]);
+        } catch (TokenExpiredException $e) {
+            return response()->json(['message' => 'Token expired'], 401);
+        } catch (TokenInvalidException $e) {
+            return response()->json(['message' => 'Invalid token'], 401);
+        } catch (JWTException $e) {
+            return response()->json(['message' => 'Token error'], 401);
+        }
     }
     public function register(Request $request)
     {
@@ -78,22 +121,59 @@ class AuthController extends Controller
 
     public function logout()
     {
-        Auth::logout();
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Successfully logged out',
-        ]);
+
+        return response()->json(['message' => 'Logged out'])
+        ->cookie(
+            'accessToken', // name
+            '', // value
+            -1, // expire
+            '/', // path
+            'api-ibs.test', //localhost // domain
+            true, // secure
+            true, // HttpOnly ✅
+            false, // raw
+            'None' // SameSite
+        )
+        ->cookie(
+            'refreshToken', // name
+            '', // value
+            -1, // expire
+            '/', // path
+            'api-ibs.test', //localhost // domain
+            true, // secure
+            true, // HttpOnly ✅
+            false, // raw
+            'None' // SameSite
+        );
+
     }
 
-    public function refresh()
+    public function refresh(Request $request)
     {
-        return response()->json([
-            'status' => 'success',
-            'user' => Auth::user(),
-            'authorisation' => [
-                'accessToken' => Auth::refresh(),
-                'type' => 'bearer',
-            ]
-        ]);
+        $refreshToken = $request->cookie('refreshToken');
+        try {
+            $payload = JWTAuth::setToken($refreshToken)->getPayload();
+            if ($payload['type'] !== 'refresh') {
+                return response()->json(['message' => 'Invalid refresh token'], 401);
+            }
+            $user = JWTAuth::setToken($refreshToken)->authenticate();
+            $newAccessToken = JWTAuth::fromUser($user);
+
+            return response()->json(['message' => 'Token refreshed'])
+                ->cookie(
+                'accessToken',  // name
+                $newAccessToken,  // value
+                60,  // expire
+                '/',  // path
+                'api-ibs.test',  // domain
+                true,  // secure
+                true,  // HttpOnly ✅
+                false,  // raw
+                'None'  // SameSite
+            );
+
+        } catch (JWTException $e) {
+            return response()->json(['status'=>false,'message' => 'Token expired or invalid'], 401);
+        }
     }
 }

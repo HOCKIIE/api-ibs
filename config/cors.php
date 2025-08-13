@@ -1,9 +1,11 @@
 <?php
 
 return [
-    'paths' => ['api/*'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['http://localhost:3000'], // เปลี่ยนเป็น URL Next.js
+    'allowed_origins' => ['https://localhost:3000'], // เปลี่ยนเป็น URL Next.js
     'allowed_headers' => ['*'],
-    'supports_credentials' => false, // ❌ ปิด Sanctum
+    'exposed_headers' => [],
+    'max_age' => 0,
+    'supports_credentials' => true,
 ];

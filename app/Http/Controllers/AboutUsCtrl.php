@@ -25,12 +25,9 @@ class AboutUsCtrl extends Controller
     {
         try{
             $data = About::first();
-            $data->title_th = Purify::clean($request->title_th);
-            $data->title_en = Purify::clean($request->title_en);
-            $data->title_jp = Purify::clean($request->title_jp);
-            $data->detail_th = Purify::clean($request->detail_th);
-            $data->detail_en = Purify::clean($request->detail_en);
-            $data->detail_jp = Purify::clean($request->detail_jp);
+            $data->detail_th = $request->detail_th;
+            $data->detail_en = $request->detail_en;
+            $data->detail_ja = $request->detail_ja;
             if($data->save()){
                 $response = [
                     'status'=> true,
@@ -45,7 +42,10 @@ class AboutUsCtrl extends Controller
             return response()->json($response);
 
         }catch(\Exception $e){
-            return response()->json($e->getMessage());
+            return response()->json([
+                'status'=>false,
+                'message'=>$e->getMessage()
+            ]);
         }
     }
 }

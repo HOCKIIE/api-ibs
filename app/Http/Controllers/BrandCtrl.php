@@ -153,7 +153,10 @@ class BrandCtrl extends Controller
                 'title_ja' => 'required|string|max:255',
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
-                'description_ja' => 'required|string'
+                'description_ja' => 'required|string',
+                'detail_th' => 'required|string',
+                'detail_en' => 'required|string',
+                'detail_ja' => 'required|string'
             ]);
 
             // Update the brand details
@@ -167,7 +170,7 @@ class BrandCtrl extends Controller
             $data->detail_en = $request->detail_en;
             $data->detail_ja = $request->detail_ja;
             $data->website = $request->website;
-            $data->status = (bool)$request->status; // Set status to 1 (active)
+            $data->status = (bool) $request->input('status');
             $categories = $request->input('category', []);
 
             // Save the updated data
