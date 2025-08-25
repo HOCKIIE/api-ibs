@@ -9,6 +9,7 @@ use App\Http\Controllers\CategoryCtrl;
 use App\Http\Controllers\BrandCtrl;
 use App\Http\Controllers\ProductCtrl;
 use App\Http\Controllers\UserCtrl;
+use App\Http\Controllers\MediaCtrl;
 
 Route::get('/',function(){
     return response()->json(['message'=>'Welcom to IBS Machinex API']);
@@ -40,6 +41,9 @@ Route::controller(ContactUsCtrl::class)->group(function () {
     Route::get('/sales', 'salesData');
     Route::post('/contact-us', 'store');
 });
+
+Route::get('/gallery',[MediaCtrl::class,'gallery']);
+Route::put('/gallery/upload',[MediaCtrl::class,'imageUploads']);
 
 Route::middleware(['jwt.auth'])->group(function () {
     Route::prefix('admin')->group(function () {

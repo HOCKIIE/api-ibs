@@ -78,9 +78,6 @@ class BlogCtrl extends Controller
             ]);
 
             $imagePath = null;
-            if ($request->hasFile('image')) {
-                $imagePath = $this->uploadImage($request->file('image'));
-            }
 
             // Create a new blog post
             $blog = Blog::create([
