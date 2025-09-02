@@ -29,10 +29,11 @@ class BlogResource extends JsonResource
             'detail_en' => $this->detail_en,
             'detail_ja' => $this->detail_ja,
             'status' => $this->status,
-            'published_at' => $this->published_at,
+            'pathName' => $this->pathName,
+            'published_at' => $this->published_at ? date_format(new \DateTime($this->published_at), 'F d, Y') : null,
             'is_deleted' => $this->is_deleted,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'created_at' =>  $this->created_at ? date_format($this->created_at, 'd/m/Y H:i') : null,
+            'updated_at' => $this->updated_at ? date_format($this->updated_at, 'd/m/Y H:i') : null,
             'deleted_at' => $this->deleted_at
         ];
     }

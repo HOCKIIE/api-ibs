@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Owner;
 use App\Models\User;
 use App\Http\Resources\ContactResource;
+use App\Http\Resources\ContactUsResource;
 use App\Http\Resources\UserResource;
 use App\Models\Contact;
+use App\Models\ContactUs;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ContactUsCtrl extends Controller
@@ -31,6 +33,7 @@ class ContactUsCtrl extends Controller
         $data->lastName = $request->lastName;
         $data->email = $request->email;
         $data->message = $request->message;
+        $data->source = $request->source;
 
         if ($data->save()) {
             return response()->json([
@@ -45,6 +48,7 @@ class ContactUsCtrl extends Controller
         }
     }
 
+    
     public function update(Request $request)
     {
         $data = Owner::find(1);
@@ -71,4 +75,30 @@ class ContactUsCtrl extends Controller
         }
         return response()->json($response);
     }
+
+    public function contactUs(Request $request)
+    {
+        try {
+
+            $model = new ContactUs;
+            $keyword = $request->keyword;
+            $limit = $request->limit ? $request->limit : 10;
+
+            $data = $model::when($request->leyword,function($query)use($keyword){
+                $query->where('firstName','like',"%$keyword%")
+                    ->orWhere('lastName','like',"%$keyword%")
+                    ->orWhere('email','like',"%$keyword%")
+                    ->orWhere('source','like',"%$keyword%");
+            })
+            ->paginate($limit);
+            return ContactUsResource::collection($data);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ],500);
+        }
+    }
+
 }

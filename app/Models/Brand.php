@@ -22,7 +22,12 @@ class Brand extends Model
         'description_th',
         'description_en',
         'description_jp',
+        'detail_th',
+        'detail_en',
+        'detail_jp',
         'status',
+        'website',
+        'apiName',
         'is_deleted',
     ];
     protected $casts = [

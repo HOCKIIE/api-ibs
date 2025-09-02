@@ -48,7 +48,6 @@ class MediaCtrl extends Controller
         ];
         $gallery = [];
         
-        
         if ($request->hasFile('images')) {
             foreach($request->file('images') as $file)
             {

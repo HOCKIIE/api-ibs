@@ -27,6 +27,8 @@ return new class extends Migration
                 $table->longText('detail_th')->nullable()->default(null)->comment('Detail TH');
                 $table->longText('detail_en')->nullable()->default(null)->comment('Detail EN');
                 $table->longText('detail_ja')->nullable()->default(null)->comment('Detail JA');
+                $table->longText('website')->nullable()->default(null)->comment('Website');
+                $table->text('apiName')->nullable()->default(null)->comment('API Name');
                 $table->boolean('status')->default(1)->comment('Brand Status 1=Active,0=Inactive');
                 $table->boolean('is_deleted')->default(0)->comment('Brand Is Deleted 1=Deleted,0=Not Deleted');
                 $table->dateTime('deleted_at')->nullable()->default(null)->comment('Brand Deleted At');

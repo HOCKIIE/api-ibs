@@ -10,6 +10,7 @@ use App\Http\Controllers\BrandCtrl;
 use App\Http\Controllers\ProductCtrl;
 use App\Http\Controllers\UserCtrl;
 use App\Http\Controllers\MediaCtrl;
+use App\Models\Blog;
 
 Route::get('/',function(){
     return response()->json(['message'=>'Welcom to IBS Machinex API']);
@@ -30,6 +31,13 @@ Route::controller(CategoryCtrl::class)->group(function () {
 });
 Route::controller(BrandCtrl::class)->group(function () {
     Route::get('/brand', 'getBrand');
+    Route::get('/brand/{apiName}', 'getBrandByApiName')->where(['apiName' => '[a-z-]+']);
+});
+Route::controller(BlogCtrl::class)->group(function () {
+    Route::get('/blog', 'getBlog');
+    Route::get('/blog/{id}', 'getBlogById')->where(['id' => '[0-9]+']);
+    Route::get('/blog/show/{pathName}', 'getBlogByPathName')->where(['pathName' => '[a-zA-Z0-9-._,]+']);
+    Route::get('/blog/recent', 'recent');
 });
 
 Route::controller(AboutUsCtrl::class)->group(function(){
@@ -86,6 +94,7 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::controller(ContactUsCtrl::class)->group(function () {
             Route::get('/contact', 'index');
             Route::put('/contact/update', 'update');
+            Route::get('/contact-us','contactUs');
         });
         Route::controller(AboutUsCtrl::class)->group(function () {
             Route::get('/about', 'index');
@@ -93,3 +102,5 @@ Route::middleware(['jwt.auth'])->group(function () {
         });
     });
 });
+
+Route::get('/proxy/{slug}', [\App\Http\Controllers\ProxyCtrl::class,'proxy'])->where(['slug' => '[a-zA-Z0-9-._]+']);

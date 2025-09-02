@@ -12,6 +12,14 @@ use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 
 class BlogCtrl extends Controller
 {
+    protected $imageWidth;
+    protected $imageHeight;
+
+    public function __construct()
+    {
+        $this->imageWidth = env('BRAND_IMAGE_WIDTH', 1000);
+        $this->imageHeight = env('BRAND_IMAGE_HEIGHT', 1000);
+    }
     public function index(Request $request)
     {
         try {
@@ -45,19 +53,48 @@ class BlogCtrl extends Controller
         }
     }
 
+    public function recent()
+    {
+        $data = Blog::where('status',1)
+            ->whereNotNull('published_at')
+            ->orderBy('published_at', 'desc')
+            ->limit(5)
+            ->get();
+        if ($data) {
+            return response()->json([
+                "status" => true,
+                "data" => BlogResource::collection($data)
+            ]);
+        } else {
+            return response()->json([
+                "status" => false,
+                "message" => "No data found"
+            ]);
+        }
+    }
+
     public function uploadImage($request, $path)
     {
         $file = $request->file('image');
-        $filename = time() . '_' . uniqid() . '.' . $request->file('image')->getClientOriginalExtension();;
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
         $manager = new ImageManager(new GdDriver());
         $image = $manager->read($file->getPathname());
-        $image->resize(1200, null, function ($constraint) {
-            // $constraint->aspectRatio();
-            $constraint->upsize(); // Prevent upscaling if the image is smaller
-        });
+        $width = $image->width();
+        $height = $image->height();
+        if (
+            $width > $height && $width > $this->imageHeight ||
+            $width < $height && $width < $this->imageHeight
+        ) {
+            $image->scale(height: $this->imageWidth)
+                ->crop($this->imageWidth, $this->imageHeight, 0, 0, position: 'center');
+        }
+        if ($width < $this->imageWidth) {
+            $image->scale(width: $this->imageWidth);
+        }
+
         $webpBinary = (string) $image->toWebp(80);
-        Storage::disk('public')->put('uploads/' . $filename, $webpBinary);
-        return "/storage/uploads/$path" . $filename;
+        Storage::disk('public')->put("uploads/$path/$filename", $webpBinary);
+        return "/storage/uploads/$path/$filename";
     }
 
     public function store(Request $request)
@@ -75,6 +112,7 @@ class BlogCtrl extends Controller
                 'detail_th' => 'required|string',
                 'detail_en' => 'required|string',
                 'detail_ja' => 'required|string',
+                'pathName' => 'nullable|string|max:255|unique:blog,pathName',
             ]);
 
             $imagePath = null;
@@ -83,19 +121,21 @@ class BlogCtrl extends Controller
             $blog = Blog::create([
                 'title_th' => $request->title_th,
                 'title_en' => $request->title_en,
-                'title_jp' => $request->title_jp,
+                'title_ja' => $request->title_ja,
                 'description_th' => $request->description_th,
                 'description_en' => $request->description_en,
-                'description_jp' => $request->description_jp,
+                'description_ja' => $request->description_ja,
                 'detail_th' => $request->detail_th,
                 'detail_en' => $request->detail_en,
-                'detail_jp' => $request->detail_jp,
+                'detail_ja' => $request->detail_ja,
+                'pathName' => $request->pathName,
                 'published_at' => $request->has('publish') ? now()->toDateTimeString() : NULL,
+                'created_at' => now()->toDateTimeString(),
             ]);
             // store category
             $blog->categories()->attach($request->category);
             if ($blog->id && $request->hasFile('image')) {
-                $imagePath = $this->uploadImage($request, "blog/$blog->id/");
+                $imagePath = $this->uploadImage($request, "blog/$blog->id");
                 Blog::where('id', $blog->id)->update(['image' => $imagePath]);
             }
             return response()->json([
@@ -137,13 +177,14 @@ class BlogCtrl extends Controller
                 'detail_th' => 'nullable|string',
                 'detail_en' => 'nullable|string',
                 'detail_ja' => 'nullable|string',
+                'pathName' => 'nullable|string|max:255|unique:blog,pathName,' . $id,
             ]);
             $data = Blog::findOrfail($id);
             if ($request->hasFile('image')) {
                 if ($data->image) {
                     Storage::delete($data->image);
                 }
-                $data->image = $this->uploadImage($request, "blog/$id/");
+                $data->image = $this->uploadImage($request, "blog/$id");
             }
 
             $categories = $request->input('category', []);
@@ -156,6 +197,7 @@ class BlogCtrl extends Controller
             $data->detail_th = $request->detail_th;
             $data->detail_en = $request->detail_en;
             $data->detail_ja = $request->detail_ja;
+            $data->pathName = $request->pathName;
             $data->updated_at = now()->toDateTimeString();
             // 
             if ($request->has('published_at') && $data->published_at == null) {
@@ -201,5 +243,31 @@ class BlogCtrl extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function getBlogByPathName(Request $request, $pathName)
+    {
+        try {
+            $data = Blog::where('pathName',$pathName)
+                // ->with('categories')
+                ->get();
+            if ($data->isEmpty()) {
+                return response()->json([
+                    "status" => false,
+                    "message" => "No data found"
+                ]);
+            } else {
+                return response()->json([
+                    "status" => true,
+                    "data" => BlogResource::collection($data)
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+
     }
 }

@@ -92,6 +92,7 @@ class BrandCtrl extends Controller
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
                 'description_ja' => 'required|string',
+                'apiName' => 'required|string|max:255|unique:brand,apiName',
                 'category' => 'exists:category,id', // Validate category as an array of existing IDs
             ]);
 
@@ -111,6 +112,7 @@ class BrandCtrl extends Controller
             $data->detail_en = $request->detail_en;
             $data->detail_ja = $request->detail_ja;
             $data->website = $request->website;
+            $data->apiName = $request->apiName;
             $data->status = $request->status || false;
             
             if($data->save())
@@ -154,9 +156,8 @@ class BrandCtrl extends Controller
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
                 'description_ja' => 'required|string',
-                'detail_th' => 'required|string',
-                'detail_en' => 'required|string',
-                'detail_ja' => 'required|string'
+                'apiName' => 'required|string|max:255|unique:brand,apiName',
+                'category' => 'exists:category,id', // Validate category as an array of existing IDs
             ]);
 
             // Update the brand details
@@ -170,6 +171,7 @@ class BrandCtrl extends Controller
             $data->detail_en = $request->detail_en;
             $data->detail_ja = $request->detail_ja;
             $data->website = $request->website;
+            $data->apiName = $request->apiName;
             $data->status = (bool) $request->input('status');
             $categories = $request->input('category', []);
 
@@ -245,8 +247,26 @@ class BrandCtrl extends Controller
         }
 
         $webpBinary = (string) $image->toWebp(80);
-        Storage::disk('public')->put("uploads/category/$id/$filename", $webpBinary);
+        Storage::disk('public')->put("uploads/brand/$id/$filename", $webpBinary);
         return "/storage/uploads/brand/$id/$filename";
+    }
+
+    public function getBrandByApiName($apiName){
+
+        $data = Brand::where('apiName',$apiName)->where('status',1)->first();
+        if($data->id){
+            return response()->json([
+                'status' => true,
+                "message" => "Api Name: $apiName found",
+                'data' => (new BrandResource($data))->resolve(),
+            ],200);
+        }else{
+            return response()->json([
+                'status' => false,
+                "message" => "Api Name: $apiName not found",
+            ],404);
+        }
+
     }
     
 }
