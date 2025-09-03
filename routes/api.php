@@ -10,7 +10,7 @@ use App\Http\Controllers\BrandCtrl;
 use App\Http\Controllers\ProductCtrl;
 use App\Http\Controllers\UserCtrl;
 use App\Http\Controllers\MediaCtrl;
-use App\Models\Blog;
+use App\Http\Controllers\OwnerCtrl;
 
 Route::get('/',function(){
     return response()->json(['message'=>'Welcom to IBS Machinex API']);
@@ -95,6 +95,10 @@ Route::middleware(['jwt.auth'])->group(function () {
             Route::get('/contact', 'index');
             Route::put('/contact/update', 'update');
             Route::get('/contact-us','contactUs');
+        });
+        Route::controller(OwnerCtrl::class)->group(function(){
+            Route::get('/owner','index');
+            Route::put('/owner','update');
         });
         Route::controller(AboutUsCtrl::class)->group(function () {
             Route::get('/about', 'index');
