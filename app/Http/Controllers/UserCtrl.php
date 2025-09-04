@@ -19,6 +19,7 @@ class UserCtrl extends Controller
         $model = new User();
         $status = $request->status;
         $keyword = $request->keyword;
+        $orderBy = $request->orderBy ? $request->orderBy : 'desc';
         $limit = $request->limit ? $request->limit : 10;
 
         $data = $model->when($request->status, function($query) use($status){
@@ -35,6 +36,7 @@ class UserCtrl extends Controller
                 ->orWhere('phone',"like","%$keyword%")
                 ->orWhere('email',"like","%$keyword%");
         })
+        ->orderBy('created_at', $orderBy)
         ->paginate($limit);
         
         return UserResource::collection($data);

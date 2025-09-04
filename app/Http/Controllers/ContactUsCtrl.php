@@ -82,6 +82,7 @@ class ContactUsCtrl extends Controller
 
             $model = new ContactUs;
             $keyword = $request->keyword;
+            $orderBy = $request->orderBy ? $request->orderBy : 'desc';
             $limit = $request->limit ? $request->limit : 10;
 
             $data = $model::when($request->leyword,function($query)use($keyword){
@@ -90,6 +91,7 @@ class ContactUsCtrl extends Controller
                     ->orWhere('email','like',"%$keyword%")
                     ->orWhere('source','like',"%$keyword%");
             })
+            ->orderBy('created_at', $orderBy)
             ->paginate($limit);
             return ContactUsResource::collection($data);
 

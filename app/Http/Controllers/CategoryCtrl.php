@@ -26,6 +26,7 @@ class CategoryCtrl extends Controller
         try {
             $status = $request->status;
             $keyword = $request->keyword;
+            $orderBy = $request->orderBy ? $request->orderBy : 'desc';
             $limit = $request->limit? $request->limit : 10;
 
             $data = Category::when($request->status, function ($query) use ($status) {
@@ -40,6 +41,7 @@ class CategoryCtrl extends Controller
                     ->orWhere('title_en', "like", "%$keyword%")
                     ->orWhere('title_ja', "like", "%$keyword%");
             })
+            ->orderBy('created_at', $orderBy)
             ->paginate($limit);
             return CategoryResource::collection($data);
 

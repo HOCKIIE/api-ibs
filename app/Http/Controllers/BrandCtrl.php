@@ -26,6 +26,7 @@ class BrandCtrl extends Controller
         try {
             $status = $request->status;
             $keyword = $request->keyword;
+            $orderBy = $request->orderBy ? $request->orderBy : 'desc';
             $limit = $request->limit ? $request->limit : 10;
 
             $data = Brand::when($request->status, function ($query) use ($status) {
@@ -43,6 +44,7 @@ class BrandCtrl extends Controller
                         ->orWhere('title_ja', 'like', "%$keyword%");
                 });
             })
+            ->orderBy('created_at', $orderBy)
             ->paginate($limit);
             return BrandResource::collection($data);
 

@@ -26,6 +26,7 @@ class BlogCtrl extends Controller
             $model = new Blog;
             $status = $request->status;
             $keyword = $request->keyword;
+            $orderBy = $request->orderBy ? $request->orderBy : 'desc';
             $limit = $request->limit ? $request->limit : 10;
 
             $data = $model->when($request->status, function ($query) use ($status) {
@@ -42,6 +43,7 @@ class BlogCtrl extends Controller
                         ->orWhere('title_ja', "like", "%$keyword%");
                 })
                 ->with('categories')
+                ->orderBy('created_at', $orderBy)
                 ->paginate($limit);
 
             return BlogResource::collection($data);

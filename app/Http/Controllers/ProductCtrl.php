@@ -27,6 +27,7 @@ class ProductCtrl extends Controller
             $model = new Product;
             $status = $request->status;
             $keyword = $request->keyword;
+            $orderBy = $request->orderBy ? $request->orderBy : 'desc';
             $limit = $request->limit ? $request->limit : 10;
 
             $data = $model->when($request->status, function ($query) use ($status) {
@@ -43,6 +44,7 @@ class ProductCtrl extends Controller
                         ->orWhere('title_ja', "like", "%$keyword%");
                 })
                 ->with('brand')
+                ->orderBy('created_at', $orderBy)
                 ->paginate($limit);
 
             return ProductResource::collection($data);
