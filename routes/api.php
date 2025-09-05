@@ -37,7 +37,7 @@ Route::controller(BlogCtrl::class)->group(function () {
     Route::get('/blog', 'getBlog');
     Route::get('/blog/{id}', 'getBlogById')->where(['id' => '[0-9]+']);
     Route::get('/blog/show/{pathName}', 'getBlogByPathName')->where(['pathName' => '[a-zA-Z0-9-._,]+']);
-    Route::get('/blog/recent', 'recent');
+    Route::get('/blog/recent/{number}', 'recent')->where(['number'=>'[0-9]+']);
 });
 
 Route::controller(AboutUsCtrl::class)->group(function(){

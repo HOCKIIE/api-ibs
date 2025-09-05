@@ -55,26 +55,6 @@ class BlogCtrl extends Controller
         }
     }
 
-    public function recent()
-    {
-        $data = Blog::where('status',1)
-            ->whereNotNull('published_at')
-            ->orderBy('published_at', 'desc')
-            ->limit(5)
-            ->get();
-        if ($data) {
-            return response()->json([
-                "status" => true,
-                "data" => BlogResource::collection($data)
-            ]);
-        } else {
-            return response()->json([
-                "status" => false,
-                "message" => "No data found"
-            ]);
-        }
-    }
-
     public function uploadImage($request, $path)
     {
         $file = $request->file('image');
@@ -247,12 +227,66 @@ class BlogCtrl extends Controller
         }
     }
 
+    public function recent(Request $request, $number)
+    {
+        try{
+            $number = $number == null ? 4 : (int)$number;
+            $data = Blog::where('status', 1)
+                ->whereNotNull('published_at')
+                ->orderBy('published_at', 'desc')
+                ->limit($number)
+                ->get();
+            if ($data) {
+                return response()->json([
+                    "status" => true,
+                    "data" => BlogResource::collection($data)
+                ],200);
+            } else {
+                return response()->json([
+                    "status" => false,
+                    "message" => "No data found"
+                ],200);
+            }
+        }  catch (\Exception $e){
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ],500);
+        }
+    }
+
+    public function getBlog(Request $request)
+    {
+        try{
+            $data = Blog::where('status',1)
+                ->whereNotNull('published_at')
+                ->orderBy('published_at', 'desc')
+                ->skip(4)
+                ->get();
+            if($data->isEmpty()){
+                return response()->json([
+                    "status" => false,
+                    "message" => "No data found"
+                ]);
+            }else{
+                return response()->json([
+                    "data" => BlogResource::collection($data),
+                    "status" => true,
+                    "message" => "Success"
+                ]); 
+            }
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ],500);
+        }
+    }
+
     public function getBlogByPathName(Request $request, $pathName)
     {
         try {
-            $data = Blog::where('pathName',$pathName)
-                // ->with('categories')
-                ->get();
+            $data = Blog::where('pathName',$pathName)->get();
             if ($data->isEmpty()) {
                 return response()->json([
                     "status" => false,
@@ -261,6 +295,7 @@ class BlogCtrl extends Controller
             } else {
                 return response()->json([
                     "status" => true,
+                    "message" => "data found",
                     "data" => BlogResource::collection($data)
                 ]);
             }
