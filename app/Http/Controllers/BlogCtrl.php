@@ -261,7 +261,6 @@ class BlogCtrl extends Controller
             $data = Blog::where('status',1)
                 ->whereNotNull('published_at')
                 ->orderBy('published_at', 'desc')
-                ->skip(4)
                 ->get();
             if($data->isEmpty()){
                 return response()->json([
