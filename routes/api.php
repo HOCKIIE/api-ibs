@@ -38,6 +38,8 @@ Route::controller(BlogCtrl::class)->group(function () {
     Route::get('/blog/{id}', 'getBlogById')->where(['id' => '[0-9]+']);
     Route::get('/blog/show/{pathName}', 'getBlogByPathName')->where(['pathName' => '[a-zA-Z0-9-._,]+']);
     Route::get('/blog/recent/{number}', 'recent')->where(['number'=>'[0-9]+']);
+    Route::get('/blog/recommend/byCategory','byCategory');
+    Route::get('/blog/recommend/byCustomer','byCustomer');
 });
 
 Route::controller(AboutUsCtrl::class)->group(function(){
@@ -98,7 +100,7 @@ Route::middleware(['jwt.auth'])->group(function () {
         });
         Route::controller(OwnerCtrl::class)->group(function(){
             Route::get('/owner','index');
-            Route::put('/owner','update');
+            Route::put('/owner/update','update');
         });
         Route::controller(AboutUsCtrl::class)->group(function () {
             Route::get('/about', 'index');

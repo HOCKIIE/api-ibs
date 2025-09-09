@@ -14,11 +14,13 @@ class BlogCtrl extends Controller
 {
     protected $imageWidth;
     protected $imageHeight;
+    protected $model;
 
     public function __construct()
     {
         $this->imageWidth = env('BRAND_IMAGE_WIDTH', 1000);
         $this->imageHeight = env('BRAND_IMAGE_HEIGHT', 1000);
+        $this->model = new Blog;
     }
     public function index(Request $request)
     {
@@ -29,14 +31,15 @@ class BlogCtrl extends Controller
             $orderBy = $request->orderBy ? $request->orderBy : 'desc';
             $limit = $request->limit ? $request->limit : 10;
 
-            $data = $model->when($request->status, function ($query) use ($status) {
-                if ($status == 'true') {
-                    $query->where('status', 1);
-                }
-                if ($status == 'false') {
-                    $query->where('status', 0);
-                }
-            })
+            $data = $model->when($request->status, 
+                function ($query) use ($status) {
+                    if ($status == 'true') {
+                        $query->where('status', 1);
+                    }
+                    if ($status == 'false') {
+                        $query->where('status', 0);
+                    }
+                })
                 ->when($request->keyword, function ($query) use ($keyword) {
                     $query->where('title_th', "like", "%$keyword%")
                         ->orWhere('title_en', "like", "%$keyword%")
@@ -258,21 +261,19 @@ class BlogCtrl extends Controller
     public function getBlog(Request $request)
     {
         try{
+            $limit = $request->limit ? $request->limit : 6;
             $data = Blog::where('status',1)
                 ->whereNotNull('published_at')
                 ->orderBy('published_at', 'desc')
-                ->get();
+                ->paginate($limit);
+
             if($data->isEmpty()){
                 return response()->json([
                     "status" => false,
                     "message" => "No data found"
                 ]);
             }else{
-                return response()->json([
-                    "data" => BlogResource::collection($data),
-                    "status" => true,
-                    "message" => "Success"
-                ]); 
+                return BlogResource::collection($data);
             }
         } catch (\Exception $e){
             return response()->json([
@@ -285,17 +286,37 @@ class BlogCtrl extends Controller
     public function getBlogByPathName(Request $request, $pathName)
     {
         try {
-            $data = Blog::where('pathName',$pathName)->get();
-            if ($data->isEmpty()) {
-                return response()->json([
-                    "status" => false,
-                    "message" => "No data found"
-                ]);
-            } else {
+            $data = $this->model::where('pathName',$pathName)
+            ->with('categories')
+            ->first();
+
+            $category = [];
+            foreach($data->categories as $k => $v){
+                if ($data->id != $v->blog_id) { $category[] = $v->id; }
+            }
+
+            $recommend = $this->model::whereHas('categories', function($query) use($category,$data){
+                $query
+                ->where('blog_id','!=',$data->id)
+                ->whereIn('category_id',$category);
+            })
+            ->whereNotNull('published_at')
+            ->where('status',1)
+            ->inRandomOrder()
+            ->limit(3)
+            ->get();
+
+            if ($data->id) {
                 return response()->json([
                     "status" => true,
                     "message" => "data found",
-                    "data" => BlogResource::collection($data)
+                    "data" => (new BlogResource($data))->resolve(),
+                    "recommend" => BlogResource::collection($recommend)
+                ]);
+            } else {
+                return response()->json([
+                    "status" => false,
+                    "message" => "No data found"
                 ]);
             }
         } catch (\Exception $e) {
@@ -306,4 +327,61 @@ class BlogCtrl extends Controller
         }
 
     }
+    public function byCategory(Request $request)
+    {
+        try {
+            $category = $request->category;
+            $data = $this->model::where('stauts',1)
+                ->whereNotNul('published_at')
+                ->whereHas('categories',function($query) use($category){
+                    if (is_array($category)) {
+                        $query->whereIn('categories.id', $category);
+                    } else {
+                        $query->where('categories.id', $category);
+                    }
+                })
+                ->inRandomOrder()
+                ->limit(3)
+                ->with('categories')
+                ->get();
+
+            return response()->json([
+                'status'=>true,
+                'message'=>'Your request is successful.',
+                'data' => BlogResource::collection($data)
+            ],200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ],500);
+        }
+    }
+
+    public function byCustomer(Request $request) 
+    {
+        try {
+            $id = $request->id;
+            $data = $this->model::where('stauts',1)
+                ->whereIn('id',$id)
+                ->whereNotNul('published_at')
+                ->inRandomOrder()
+                ->limit(3)
+                ->get();
+
+            return response()->json([
+                'status'=>true,
+                'message'=>'Your request is successful.',
+                'data' => BlogResource::collection($data)
+            ],200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ],500);
+        }
+    }
+
 }
