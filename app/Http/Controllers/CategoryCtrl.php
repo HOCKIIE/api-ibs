@@ -140,24 +140,21 @@ class CategoryCtrl extends Controller
         try {
             $request->validate([
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-                'name_th' => 'required|string|max:255',
-                'name_en' => 'required|string|max:255',
-                'name_ja' => 'required|string|max:255',
+                'title_th' => 'required|string|max:255',
+                'title_en' => 'required|string|max:255',
+                'title_ja' => 'required|string|max:255',
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
                 'description_ja' => 'required|string'
             ]);
 
             $data = new Category;
-            $data->name_th = $request->name_th;
-            $data->name_en = $request->name_en;
-            $data->name_ja = $request->name_ja;
+            $data->title_th = $request->title_th;
+            $data->title_en = $request->title_en;
+            $data->title_ja = $request->title_ja;
             $data->description_th = $request->description_th;
             $data->description_en = $request->description_en;
             $data->description_ja = $request->description_ja;
-            $data->detail_th = $request->detail_th;
-            $data->detail_en = $request->detail_en;
-            $data->detail_ja = $request->detail_ja;
             $data->status = false;
 
             if($data->save()) {
