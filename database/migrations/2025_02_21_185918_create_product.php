@@ -29,7 +29,7 @@ return new class extends Migration
                 $table->longText('detail_th')->nullable()->default(null)->comment('Category Detail TH');
                 $table->longText('detail_en')->nullable()->default(null)->comment('Category Detail EN');
                 $table->longText('detail_jp')->nullable()->default(null)->comment('Category Detail JP');
-                $table->boolean('status')->default(1)->comment('Category Status 1=Active,0=Inactive');
+                $table->boolean('status')->default(0)->comment('Category Status 1=Active,0=Inactive');
                 $table->dateTime('published_at')->nullable()->default(null)->comment('Category Published At');
                 $table->boolean('is_deleted')->default(0)->comment('Category Is Deleted 1=Deleted,0=Not Deleted');
                 $table->dateTime('deleted_at')->nullable()->default(null)->comment('Category Deleted At');

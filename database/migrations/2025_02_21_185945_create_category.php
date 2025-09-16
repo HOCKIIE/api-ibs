@@ -24,7 +24,7 @@ return new class extends Migration
                 $table->mediumText('description_th')->nullable()->default(null)->comment('Description TH');
                 $table->mediumText('description_en')->nullable()->default(null)->comment('Description EN');
                 $table->mediumText('description_ja')->nullable()->default(null)->comment('Description JA');
-                $table->boolean('status')->default(1)->comment('Status 1=Active,0=Inactive');
+                $table->boolean('status')->default(0)->comment('Status 1=Active,0=Inactive');
                 $table->boolean('is_deleted')->default(0)->comment('Is Deleted 1=Deleted,0=Not Deleted');
                 $table->dateTime('deleted_at')->nullable()->default(null)->comment('Deleted At');
                 $table->timestamps();

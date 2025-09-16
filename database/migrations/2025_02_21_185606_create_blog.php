@@ -27,7 +27,7 @@ return new class extends Migration
                 $table->longText('detail_th')->nullable()->default(null)->comment('detail TH');
                 $table->longText('detail_en')->nullable()->default(null)->comment('detail EN');
                 $table->longText('detail_ja')->nullable()->default(null)->comment('detail JA');
-                $table->boolean('status')->default(1)->comment('Status 1=Active,0=Inactive');
+                $table->boolean('status')->default(0)->comment('Status 1=Active,0=Inactive');
                 $table->dateTime('published_at')->nullable()->default(null)->comment('Published At');
                 $table->boolean('is_deleted')->default(0)->comment('Is Deleted 1=Deleted,0=Not Deleted');
                 $table->dateTime('deleted_at')->nullable()->default(null)->comment('Deleted At');

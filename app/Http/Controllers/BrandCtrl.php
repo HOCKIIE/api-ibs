@@ -115,7 +115,7 @@ class BrandCtrl extends Controller
             $data->detail_ja = $request->detail_ja;
             $data->website = $request->website;
             $data->apiName = $request->apiName;
-            $data->status = $request->status || false;
+            $data->status = $request->status || 0;
             
             if($data->save())
             {

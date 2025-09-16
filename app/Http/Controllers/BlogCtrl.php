@@ -87,7 +87,7 @@ class BlogCtrl extends Controller
         try {
             // Validate the request data
             $request->validate([
-                'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'title_th' => 'required|string|max:255',
                 'title_en' => 'required|string|max:255',
                 'title_ja' => 'required|string|max:255',
@@ -113,6 +113,7 @@ class BlogCtrl extends Controller
                 'detail_en' => $request->detail_en,
                 'detail_ja' => $request->detail_ja,
                 'pathName' => $request->pathName,
+                'status' => $request->has('status') ? $request->status : 0,
                 'published_at' => $request->has('publish') ? now()->toDateTimeString() : NULL,
                 'created_at' => now()->toDateTimeString(),
             ]);
