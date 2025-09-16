@@ -98,7 +98,6 @@ class BlogCtrl extends Controller
             ]);
 
             $imagePath = null;
-
             // Create a new blog post
             $blog = Blog::create([
                 'title_th' => $request->title_th,
@@ -119,16 +118,17 @@ class BlogCtrl extends Controller
             if ($blog->id && $request->hasFile('image')) {
                 $imagePath = $this->uploadImage($request, "blog/$blog->id");
                 Blog::where('id', $blog->id)->update(['image' => $imagePath]);
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Blog post created successfully',
+                    'data' => (new BlogResource(Blog::with('categories')->findOrfail($blog->id)))->resolve(),
+                ], 201);
             }
-            return response()->json([
-                'status' => true,
-                'message' => 'Blog post created successfully',
-                'data' => $blog,
-            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'data' => $request->all()
             ]);
         }
     }
