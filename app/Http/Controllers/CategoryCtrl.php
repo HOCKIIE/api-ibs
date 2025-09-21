@@ -97,32 +97,14 @@ class CategoryCtrl extends Controller
                 ->orWhereHas('brand', function ($q) use ($keyword) {
                     $q->where('title_th', 'like', "%$keyword%")
                         ->orWhere('title_en', 'like', "%$keyword%")
-                        ->orWhere('title_ja', 'like', "%$keyword%");
+                        ->orWhere('title_ja', 'like', "$keyword%");
                 });
         })
         ->with('brand')->get();
-
-        // $brandQuery = Brand::
-        // when($request->keyword, function($query) use($keyword) {
-        //     $query->where(function($where) use($keyword) {
-        //         $where->where('name_th', 'like', '%'.$keyword.'%')
-        //             ->orWhere('name_en', 'like', '%'.$keyword.'%')
-        //             ->orWhere('name_ja', 'like', '%'.$keyword.'%');
-        //     });
-        // })
-        // ->with('category');
-
-        // // ดึงผลลัพธ์จากทั้งสองคิวรี
-        // $categoryResults = $categoryQuery->get();
-        // $brandResults = $brandQuery->get();
-
-        // // รวมผลลัพธ์
-        // $combinedResults = $categoryResults->merge($brandResults);
-
         return response()->json(CategoryResource::collection($data));
     }
 
-     public function show(string $id)
+    public function show(string $id)
     {
         try {
             $data = Category::findOrfail($id);
@@ -230,10 +212,11 @@ class CategoryCtrl extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
         try {
-            $category = Category::find($id);
+            $id = $request->id;
+            $category = Category::findOrFail($id);
             if (!$category) {
                 return response()->json([
                     'status' => false,
@@ -241,13 +224,57 @@ class CategoryCtrl extends Controller
                 ], 404);
             }
 
-            // Soft delete the category
-            $category->delete();
+            $category->is_deleted = true;
+            if($category->save()) {
+                $category->delete();
+                return response()->json([
+                    'status' => true,
+                    'statusCode' => 200,
+                    'message' => "Category deleted successfully",
+                ]);
+            }else{
+                return response()->json([
+                    'status' => false,
+                    'statusCode' => 200,
+                    'message' => "Failed to delete category",
+                ]);
+            }
 
+        } catch (\Exception $e) {
             return response()->json([
-                'status' => true,
-                'message' => "Category deleted successfully",
-            ], 200);
+                'status' => false,
+                'statusCode' => $e->getCode(),
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function forceDelete(Request $request)
+    {
+        try {
+            $id = $request->id;
+            $category = Category::withTrashed()->findOrFail($id);
+            if (!$category) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "Category not found",
+                ], 404);
+            }
+
+            $image = Str::after($category->image, '/storage/');
+            Storage::disk('public')->delete($image);
+
+            if ($category->forceDelete()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => "Category permanently deleted successfully",
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => "Failed to permanently delete category",
+                ], 500);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,

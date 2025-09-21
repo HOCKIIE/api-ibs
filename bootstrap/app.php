@@ -29,7 +29,22 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (HttpException $e) {
-            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
+        $exceptions->render(function (Throwable $e) {
+            $statusCode = $e instanceof HttpException
+                ? $e->getStatusCode()
+                : 500; // default 500
+
+            return response()->json([
+                'status' => false,
+                'statusCode' => $statusCode,
+                'message' => $e->getMessage() ?: 'Server Error',
+            ]);
         });
+        // $exceptions->render(function (HttpException $e) {
+        //     return response()->json([
+        //         'status' => $e->getCode(),
+        //         'statusCode' => $e->getCode(),
+        //         'message' => $e->getMessage(),
+        //     ]);
+        // });
     })->create();
