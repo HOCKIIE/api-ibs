@@ -104,11 +104,11 @@ class CategoryCtrl extends Controller
         return response()->json(CategoryResource::collection($data));
     }
 
-    public function show(string $id)
+    public function show(String $id)
     {
         try {
-            $data = Category::findOrfail($id);
-            return response()->json((new CategoryResource($data))->resolve());
+            $data = Category::whereIn('id',[$id])->get();
+            return response()->json(CategoryResource::collection($data));
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
