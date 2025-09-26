@@ -38,8 +38,14 @@ return Application::configure(basePath: dirname(__DIR__))
                 'status' => false,
                 'statusCode' => $statusCode,
                 'message' => $e->getMessage() ?: 'Server Error',
-            ]);
+            ], $statusCode);
         });
+        // $exceptions->render(function (HttpException $e) {
+        //     return response()->json([
+        //         'message' => $e->getMessage(), 
+        //         'statusCode'=>$e->getStatusCode()
+        //     ], $e->getStatusCode());
+        // });
         // $exceptions->render(function (HttpException $e) {
         //     return response()->json([
         //         'status' => $e->getCode(),

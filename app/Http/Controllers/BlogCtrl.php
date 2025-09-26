@@ -31,7 +31,14 @@ class BlogCtrl extends Controller
             $orderBy = $request->orderBy ? $request->orderBy : 'desc';
             $limit = $request->limit ? $request->limit : 10;
 
-            $data = $model->when($request->status, 
+            $data = $model
+            ->select(
+                'id',
+                'title_th','title_en','title_ja',
+                'description_th','description_en','description_ja',
+                'created_at','updated_at','status','image','pathName','published_at'
+            )
+            ->when($request->status, 
                 function ($query) use ($status) {
                     if ($status == 'true') {
                         $query->where('status', 1);
