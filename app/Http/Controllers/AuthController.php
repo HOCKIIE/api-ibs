@@ -19,10 +19,11 @@ use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
-
+    protected $appURL = '';
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh','me', 'logout']]);
+        $this->appURL = env('APP_ENV') === "development" ? env('APP_URL_DEV') : env('APP_URL_PROD');
     }
 
     public function login(Request $request)
@@ -58,13 +59,13 @@ class AuthController extends Controller
                 $token,  // value
                 60,  // expire
                 '/',  // path
-                'api-ibs.test',  // domain
+                $this->appURL,  // domain
                 true,  // secure
                 true,  // HttpOnly ✅
                 false,  // raw
                 'None' // SameSite
             )
-            ->cookie('refreshToken', $refreshToken, 1440, '/', 'api-ibs.test', true, true, false, 'None');
+            ->cookie('refreshToken', $refreshToken, 1440, '/', $this->appURL, true, true, false, 'None');
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
         }
@@ -128,7 +129,7 @@ class AuthController extends Controller
             '', // value
             -1, // expire
             '/', // path
-            '.vercel.app', //localhost // domain
+            $this->appURL, //localhost // domain
             true, // secure
             true, // HttpOnly ✅
             false, // raw
@@ -139,7 +140,7 @@ class AuthController extends Controller
             '', // value
             -1, // expire
             '/', // path
-            '.vercel.app', //localhost // domain
+            $this->appURL, //localhost // domain
             true, // secure
             true, // HttpOnly ✅
             false, // raw
@@ -165,7 +166,7 @@ class AuthController extends Controller
                 $newAccessToken,  // value
                 60,  // expire
                 '/',  // path
-                '.vercel.app',  // domain
+                $this->appURL,  // domain
                 true,  // secure
                 true,  // HttpOnly ✅
                 false,  // raw
