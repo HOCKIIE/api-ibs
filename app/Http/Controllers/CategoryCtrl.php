@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class CategoryCtrl extends Controller
 {
@@ -157,6 +158,7 @@ class CategoryCtrl extends Controller
             }
             
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -205,6 +207,7 @@ class CategoryCtrl extends Controller
                 ], 500);
             }
         } catch (\Exception $e) {
+            Log::error($e->getMessage(),[]);
             return response()->json([
                 "status" => false,
                 "message" => $e->getMessage(),
@@ -241,6 +244,11 @@ class CategoryCtrl extends Controller
             }
 
         } catch (\Exception $e) {
+            Log::error($e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'status' => false,
                 'statusCode' => $e->getCode(),
@@ -276,6 +284,7 @@ class CategoryCtrl extends Controller
                 ], 500);
             }
         } catch (\Exception $e) {
+            Log::error($e->getMessage(),[]);
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),

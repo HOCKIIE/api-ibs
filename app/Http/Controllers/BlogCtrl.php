@@ -193,7 +193,7 @@ class BlogCtrl extends Controller
             $data->pathName = $request->pathName;
             $data->updated_at = now()->toDateTimeString();
             // 
-            if ($request->has('published_at') && $data->published_at == null) {
+            if ($request->has('published_at') && $data->published_at != null) {
                 $data->published_at = $request->published_at;
             }
             //
@@ -371,9 +371,9 @@ class BlogCtrl extends Controller
     {
         try {
             $id = $request->id;
-            $data = $this->model::where('stauts',1)
-                ->whereIn('id',$id)
-                ->whereNotNul('published_at')
+            $data = $this->model::where('status',1)
+                ->where('recommend',1)
+                ->whereNotNull('published_at')
                 ->inRandomOrder()
                 ->limit(3)
                 ->get();

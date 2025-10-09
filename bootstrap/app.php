@@ -3,7 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Symfony\Component\HttpKernel\Exception\HttpException; // http status code
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 // use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
 // use Illuminate\Routing\Exceptions\InvalidSignatureException;
@@ -33,7 +33,6 @@ return Application::configure(basePath: dirname(__DIR__))
             $statusCode = $e instanceof HttpException
                 ? $e->getStatusCode()
                 : 500; // default 500
-
             return response()->json([
                 'status' => false,
                 'statusCode' => $statusCode,

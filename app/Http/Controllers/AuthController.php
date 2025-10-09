@@ -128,7 +128,7 @@ class AuthController extends Controller
             '', // value
             -1, // expire
             '/', // path
-            'api-ibs.test', //localhost // domain
+            '.vercel.app', //localhost // domain
             true, // secure
             true, // HttpOnly ✅
             false, // raw
@@ -139,7 +139,7 @@ class AuthController extends Controller
             '', // value
             -1, // expire
             '/', // path
-            'api-ibs.test', //localhost // domain
+            '.vercel.app', //localhost // domain
             true, // secure
             true, // HttpOnly ✅
             false, // raw
@@ -165,7 +165,7 @@ class AuthController extends Controller
                 $newAccessToken,  // value
                 60,  // expire
                 '/',  // path
-                'api-ibs.test',  // domain
+                '.vercel.app',  // domain
                 true,  // secure
                 true,  // HttpOnly ✅
                 false,  // raw

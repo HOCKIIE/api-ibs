@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class BrandCtrl extends Controller
 {
@@ -59,8 +60,8 @@ class BrandCtrl extends Controller
     public function show(Request $request)
     {
         try {
-            $data = Brand::with('categories')->findOrFail($request->id);
-            return response()->json((new BrandResource($data))->resolve());
+            $data = Brand::where('id',$request->id)->with('categories')->get();
+            return response()->json(BrandResource::collection($data));
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
@@ -222,6 +223,8 @@ class BrandCtrl extends Controller
                 'message' => 'Brand deleted successfully.',
             ], 200);
         } catch (\Exception $e) {
+            Log::error($e->getMessage(), ['user' => 123]);
+            Log::warning($e->getMessage()); // จะลงแค่ไฟล์, ไม่ลง DB
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
