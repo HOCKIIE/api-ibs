@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Support\Str;
 use App\Http\Resources\CategoryResource;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
 class CategoryCtrl extends Controller
@@ -47,6 +47,7 @@ class CategoryCtrl extends Controller
             return CategoryResource::collection($data);
 
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -111,6 +112,7 @@ class CategoryCtrl extends Controller
             $data = Category::whereIn('id',[$id])->get();
             return response()->json(CategoryResource::collection($data));
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -190,7 +192,7 @@ class CategoryCtrl extends Controller
                 if ($request->hasFile('image')) {
                     $imagePath = $this->uploadImage($request->file('image'), $request->id);
                     $image = Str::after($data->image, '/storage/');
-                    Storage::disk('public')->delete($image);
+                    Storage::disk(env('FILESYSTEM_DISK'))->delete($image);
     
                     $data->image = $imagePath;
                     $data->save();

@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Blog;
+use Illuminate\Support\Str;
 use App\Http\Resources\BlogResource;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
-
+use Illuminate\Support\Facades\Log;
 
 class BlogCtrl extends Controller
 {
@@ -120,8 +121,9 @@ class BlogCtrl extends Controller
                 'detail_en' => $request->detail_en,
                 'detail_ja' => $request->detail_ja,
                 'pathName' => $request->pathName,
+                'recommend' => $request->has('recommend') && $request->recommend == 'true' ? 1 : 0,
                 'status' => $request->has('status') ? $request->status : 0,
-                'published_at' => $request->has('publish') ? now()->toDateTimeString() : NULL,
+                'published_at' => $request->has('published_at') ? now()->toDateTimeString() : NULL,
                 'created_at' => now()->toDateTimeString(),
             ]);
             // store category
@@ -136,6 +138,7 @@ class BlogCtrl extends Controller
                 ], 201);
             }
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -150,6 +153,7 @@ class BlogCtrl extends Controller
             $data = Blog::with('categories')->findOrfail($id);
             return response()->json((new BlogResource($data))->resolve());
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -175,7 +179,8 @@ class BlogCtrl extends Controller
             $data = Blog::findOrfail($id);
             if ($request->hasFile('image')) {
                 if ($data->image) {
-                    Storage::delete($data->image);
+                    $image = Str::after($data->image, '/storage/');
+                    Storage::disk(env('FILESYSTEM_DISK'))->delete($image);
                 }
                 $data->image = $this->uploadImage($request, "blog/$id");
             }
@@ -191,10 +196,11 @@ class BlogCtrl extends Controller
             $data->detail_en = $request->detail_en;
             $data->detail_ja = $request->detail_ja;
             $data->pathName = $request->pathName;
+            $data->recommend = $request->has('recommend') && $request->recommend == 'true' ? 1 : 0;
             $data->updated_at = now()->toDateTimeString();
             // 
-            if ($request->has('published_at') && $data->published_at != null) {
-                $data->published_at = $request->published_at;
+            if ($request->has('published_at')) {
+                $data->published_at = now();
             }
             //
             if ($data->save()) {
@@ -211,6 +217,7 @@ class BlogCtrl extends Controller
                 ], 500);
             }
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -223,7 +230,7 @@ class BlogCtrl extends Controller
         try {
             $data = Blog::findOrfail($id);
             if ($data->image) {
-                Storage::delete($data->image);
+                Storage::disk(env('FILESYSTEM_DISK'))->delete($data->image);
             }
             $data->delete();
             return response()->json([
@@ -231,6 +238,7 @@ class BlogCtrl extends Controller
                 'message' => 'Blog post deleted successfully',
             ], 200);
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -259,6 +267,7 @@ class BlogCtrl extends Controller
                 ],200);
             }
         }  catch (\Exception $e){
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -284,6 +293,7 @@ class BlogCtrl extends Controller
                 return BlogResource::collection($data);
             }
         } catch (\Exception $e){
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -328,6 +338,7 @@ class BlogCtrl extends Controller
                 ]);
             }
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -360,6 +371,7 @@ class BlogCtrl extends Controller
             ],200);
 
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
@@ -367,10 +379,9 @@ class BlogCtrl extends Controller
         }
     }
 
-    public function byCustomer(Request $request) 
+    public function byCustomer() 
     {
         try {
-            $id = $request->id;
             $data = $this->model::where('status',1)
                 ->where('recommend',1)
                 ->whereNotNull('published_at')
@@ -385,6 +396,7 @@ class BlogCtrl extends Controller
             ],200);
 
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage()
