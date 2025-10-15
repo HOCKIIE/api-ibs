@@ -39,7 +39,7 @@ Route::controller(BlogCtrl::class)->group(function () {
     Route::get('/blog/show/{pathName}', 'getBlogByPathName')->where(['pathName' => '[a-zA-Z0-9-._,]+']);
     Route::get('/blog/recent/{number}', 'recent')->where(['number'=>'[0-9]+']);
     Route::get('/blog/recommend/byCategory','byCategory');
-    Route::get('/blog/recommend/byCustomer','byCustomer');
+    Route::get('/blog/recommend/byCustomer/{limit}','byCustomer')->where(['number'=>'[0-9]+']);
 });
 
 Route::controller(AboutUsCtrl::class)->group(function(){

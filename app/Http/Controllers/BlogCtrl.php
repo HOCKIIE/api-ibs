@@ -379,14 +379,14 @@ class BlogCtrl extends Controller
         }
     }
 
-    public function byCustomer() 
+    public function byCustomer($limiit = 5) 
     {
         try {
             $data = $this->model::where('status',1)
                 ->where('recommend',1)
                 ->whereNotNull('published_at')
                 ->inRandomOrder()
-                ->limit(3)
+                ->limit($limiit)
                 ->get();
 
             return response()->json([
