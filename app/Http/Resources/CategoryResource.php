@@ -26,7 +26,7 @@ class CategoryResource extends JsonResource
             'description_en' => $this->description_en,
             'description_ja' => $this->description_ja,
             'status' => $this->status,
-            'brand' => $this->whenLoaded('brand',function() use($keyword) {
+            'brands' => $this->whenLoaded('brand',function() use($keyword) {
                 return BrandResource::collection(
                     collect($this->brand)->filter(function ($brand) use ($keyword) {
                         return !$keyword 

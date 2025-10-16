@@ -30,6 +30,7 @@ class BlogResource extends JsonResource
             'detail_ja' => $this->detail_ja,
             'status' => $this->status,
             'pathName' => $this->pathName,
+            'recommend'=> $this->recommend,
             'published_at' => $this->published_at ? date_format(new \DateTime($this->published_at), 'F d, Y') : null,
             'is_deleted' => $this->is_deleted,
             'created_at' =>  $this->created_at ? date_format($this->created_at, 'd/m/Y H:i') : null,

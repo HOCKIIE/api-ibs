@@ -19,8 +19,8 @@ class BlogCtrl extends Controller
 
     public function __construct()
     {
-        $this->imageWidth = env('BRAND_IMAGE_WIDTH', 1000);
-        $this->imageHeight = env('BRAND_IMAGE_HEIGHT', 1000);
+        $this->imageWidth = env('BLOG_IMAGE_WIDTH');
+        $this->imageHeight = env('BLOG_IMAGE_HEIGHT');
         $this->model = new Blog;
     }
     public function index(Request $request)
@@ -59,6 +59,7 @@ class BlogCtrl extends Controller
 
             return BlogResource::collection($data);
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -74,11 +75,9 @@ class BlogCtrl extends Controller
         $image = $manager->read($file->getPathname());
         $width = $image->width();
         $height = $image->height();
-        if (
-            $width > $height && $width > $this->imageHeight ||
-            $width < $height && $width < $this->imageHeight
-        ) {
-            $image->scale(height: $this->imageWidth)
+
+        if ($width > $this->imageWidth) {
+            $image->scale(width: $this->imageWidth)
                 ->crop($this->imageWidth, $this->imageHeight, 0, 0, position: 'center');
         }
         if ($width < $this->imageWidth) {
@@ -86,7 +85,7 @@ class BlogCtrl extends Controller
         }
 
         $webpBinary = (string) $image->toWebp(80);
-        Storage::disk('public')->put("uploads/$path/$filename", $webpBinary);
+        Storage::disk(env('FILESYSTEM_DISK'))->put("uploads/$path/$filename", $webpBinary);
         return "/storage/uploads/$path/$filename";
     }
 
@@ -246,15 +245,21 @@ class BlogCtrl extends Controller
         }
     }
 
-    public function recent(Request $request, $number)
+    public function recent($number)
     {
         try{
             $number = $number == null ? 4 : (int)$number;
-            $data = Blog::where('status', 1)
-                ->whereNotNull('published_at')
-                ->orderBy('published_at', 'desc')
-                ->limit($number)
-                ->get();
+            $data = Blog::select(
+                'id',
+                'title_th','title_en','title_ja',
+                'description_th','description_en','description_ja',
+                'created_at','updated_at','status','image','pathName','published_at'
+            )
+            ->where('status', 1)
+            ->whereNotNull('published_at')
+            ->orderBy('published_at', 'desc')
+            ->limit($number)
+            ->get();
             if ($data) {
                 return response()->json([
                     "status" => true,
@@ -279,10 +284,16 @@ class BlogCtrl extends Controller
     {
         try{
             $limit = $request->limit ? $request->limit : 6;
-            $data = Blog::where('status',1)
-                ->whereNotNull('published_at')
-                ->orderBy('published_at', 'desc')
-                ->paginate($limit);
+            $data = Blog::select(
+                'id',
+                'title_th','title_en','title_ja',
+                'description_th','description_en','description_ja',
+                'created_at','updated_at','status','image','pathName','published_at'
+            )
+            ->where('status',1)
+            ->whereNotNull('published_at')
+            ->orderBy('published_at', 'desc')
+            ->paginate($limit);
 
             if($data->isEmpty()){
                 return response()->json([
@@ -300,7 +311,50 @@ class BlogCtrl extends Controller
             ],500);
         }
     }
+    public function getBlogById($id = 0)
+    {
+        try {
+            $data = $this->model::where('id',$id)
+            ->with('categories')
+            ->first();
 
+            $category = [];
+            foreach($data->categories as $k => $v){
+                if ($data->id != $v->blog_id) { $category[] = $v->id; }
+            }
+
+            $recommend = $this->model::whereHas('categories', function($query) use($category,$data){
+                $query
+                ->where('blog_id','!=',$data->id)
+                ->whereIn('category_id',$category);
+            })
+            ->whereNotNull('published_at')
+            ->where('status',1)
+            ->inRandomOrder()
+            ->limit(3)
+            ->get();
+
+            if ($data->id) {
+                return response()->json([
+                    "status" => true,
+                    "message" => "data found",
+                    "data" => (new BlogResource($data))->resolve(),
+                    "recommend" => BlogResource::collection($recommend)
+                ]);
+            } else {
+                return response()->json([
+                    "status" => false,
+                    "message" => "No data found"
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
     public function getBlogByPathName(Request $request, $pathName)
     {
         try {
@@ -350,19 +404,25 @@ class BlogCtrl extends Controller
     {
         try {
             $category = $request->category;
-            $data = $this->model::where('stauts',1)
-                ->whereNotNul('published_at')
-                ->whereHas('categories',function($query) use($category){
-                    if (is_array($category)) {
-                        $query->whereIn('categories.id', $category);
-                    } else {
-                        $query->where('categories.id', $category);
-                    }
-                })
-                ->inRandomOrder()
-                ->limit(3)
-                ->with('categories')
-                ->get();
+            $data = $this->model::select(
+                'id',
+                'title_th','title_en','title_ja',
+                'description_th','description_en','description_ja',
+                'created_at','updated_at','status','image','pathName','published_at'
+            )
+            ->where('stauts',1)
+            ->whereNotNul('published_at')
+            ->whereHas('categories',function($query) use($category){
+                if (is_array($category)) {
+                    $query->whereIn('categories.id', $category);
+                } else {
+                    $query->where('categories.id', $category);
+                }
+            })
+            ->inRandomOrder()
+            ->limit(3)
+            ->with('categories')
+            ->get();
 
             return response()->json([
                 'status'=>true,
@@ -382,12 +442,18 @@ class BlogCtrl extends Controller
     public function byCustomer($limiit = 5) 
     {
         try {
-            $data = $this->model::where('status',1)
-                ->where('recommend',1)
-                ->whereNotNull('published_at')
-                ->inRandomOrder()
-                ->limit($limiit)
-                ->get();
+            $data = $this->model::select(
+                'id',
+                'title_th','title_en','title_ja',
+                'description_th','description_en','description_ja',
+                'created_at','updated_at','status','image','pathName','published_at'
+            )
+            ->where('status',1)
+            ->where('recommend',1)
+            ->whereNotNull('published_at')
+            ->inRandomOrder()
+            ->limit($limiit)
+            ->get();
 
             return response()->json([
                 'status'=>true,
