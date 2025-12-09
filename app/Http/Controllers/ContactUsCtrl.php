@@ -33,6 +33,8 @@ class ContactUsCtrl extends Controller
         $data->lastName = $request->lastName;
         $data->email = $request->email;
         $data->message = $request->message;
+        $data->telephone = $request->telephone ?? NULL;
+        $data->company = $request->company ?? NULL;
         $data->source = $request->source;
 
         if ($data->save()) {

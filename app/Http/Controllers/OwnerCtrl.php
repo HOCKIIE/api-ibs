@@ -16,12 +16,9 @@ class OwnerCtrl extends Controller
     public function index()
     {
         try{
-            $data = $this->model->find(1);
-            return response()->json([
-                'status' => true,
-                'message' => 'Data retrieval successfulใ',
-                'data' => (new OwnerResource($data))->resolve()
-            ]);
+            $data = $this->model->select(['id','title_th','title_en','title_ja','address_th','address_en','address_ja','gmap','email','phone','logo'])->where('id',1)->first();
+
+            return response()->json((new OwnerResource($data))->resolve());
         }
         catch(\Exception $e){
             return response()->json([

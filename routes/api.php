@@ -46,9 +46,10 @@ Route::controller(BlogCtrl::class)->group(function () {
 Route::controller(AboutUsCtrl::class)->group(function(){
     Route::get('/about-us','index');
 });
-
-Route::controller(ContactUsCtrl::class)->group(function () {
+Route::controller(OwnerCtrl::class)->group(function(){
     Route::get('/owner', 'index');
+});
+Route::controller(ContactUsCtrl::class)->group(function () {
     Route::get('/sales', 'salesData');
     Route::post('/contact-us', 'store');
 });

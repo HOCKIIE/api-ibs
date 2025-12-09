@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if(!Schema::hasTable('contact')) {
+        if (!Schema::hasTable('contact')) {
             Schema::create('contact', function (Blueprint $table) {
                 $table->engine = 'InnoDB';
                 $table->charset('utf8');
                 $table->collation('utf8_general_ci');
                 $table->id();
+                $table->text('company')->nullable();
                 $table->text('title')->nullable();
                 $table->text('address')->nullable();
-                $table->text('phone')->nullable();
+                $table->text('telephone')->nullable();
                 $table->text('mobile')->nullable();
                 $table->text('email')->nullable();
                 $table->text('gmap')->nullable();
