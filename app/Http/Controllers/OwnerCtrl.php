@@ -18,7 +18,11 @@ class OwnerCtrl extends Controller
         try{
             $data = $this->model->select(['id','title_th','title_en','title_ja','address_th','address_en','address_ja','gmap','email','phone','logo'])->where('id',1)->first();
 
-            return response()->json((new OwnerResource($data))->resolve());
+            return response()->json([
+                'status' => true,
+                'message'=> 'Success!',
+                'data' => (new OwnerResource($data))->resolve()
+            ]);
         }
         catch(\Exception $e){
             return response()->json([

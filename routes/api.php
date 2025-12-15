@@ -11,6 +11,8 @@ use App\Http\Controllers\ProductCtrl;
 use App\Http\Controllers\UserCtrl;
 use App\Http\Controllers\MediaCtrl;
 use App\Http\Controllers\OwnerCtrl;
+use App\Http\Controllers\SettingsCtrl;
+use App\Http\Controllers\IntroCtrl;
 
 Route::get('/',function(){
     return response()->json(['message'=>'Welcom to IBS Machinex API']);
@@ -52,6 +54,10 @@ Route::controller(OwnerCtrl::class)->group(function(){
 Route::controller(ContactUsCtrl::class)->group(function () {
     Route::get('/sales', 'salesData');
     Route::post('/contact-us', 'store');
+});
+
+Route::controller(IntroCtrl::class)->group(function(){
+    Route::get('intro/video-effect','videoEffect');
 });
 
 Route::get('/gallery',[MediaCtrl::class,'gallery']);
@@ -108,6 +114,11 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::controller(AboutUsCtrl::class)->group(function () {
             Route::get('/about', 'index');
             Route::put('/about/update', 'update')->where(['id' => '[0-9]+']);
+        });
+
+        Route::controller(SettingsCtrl::class)->group(function(){
+            Route::get('settings/video-effect','videoEffect');
+            Route::put('settings/video-effect','videoEffectUpdate');
         });
     });
 });
