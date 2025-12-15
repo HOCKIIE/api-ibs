@@ -31,7 +31,9 @@ class UserCtrl extends Controller
             }
         })
         ->when($request->keyword, function($query) use($keyword){
-            $query->where('title',"like","%$keyword%")
+            $query->where('title_th',"like","%$keyword%")
+                ->orWhere('title_en',"like","%$keyword%")
+                ->orWhere('title_ja',"like","%$keyword%")
                 ->orWhere('name',"like","%$keyword%")
                 ->orWhere('phone',"like","%$keyword%")
                 ->orWhere('email',"like","%$keyword%");
@@ -67,7 +69,9 @@ class UserCtrl extends Controller
     {
         $request->validate([
             'role'=>'required|string',
-            'title' => 'required|string',
+            'title_th' => 'required|string',
+            'title_en' => 'required|string',
+            'title_ja' => 'required|string',
             'name' => 'required|string',
             'phone' => 'required|string',
             'email' => 'required|string|email|max:255|unique:users',
@@ -76,7 +80,9 @@ class UserCtrl extends Controller
 
         $data = new User;
         $data->role = $request->role;
-        $data->title = $request->title;
+        $data->title_th = $request->title_th;
+        $data->title_en = $request->title_en;
+        $data->title_ja = $request->title_ja;
         $data->contact_sale = $request->contact_sale;
         $data->name = $request->name;
         $data->phone = $request->phone;
@@ -113,7 +119,9 @@ class UserCtrl extends Controller
     {
         $request->validate([
             'role'=>'required|string',
-            'title' => 'required|string',
+            'title_th' => 'required|string',
+            'title_en' => 'required|string',
+            'title_ja' => 'required|string',
             'name' => 'required|string',
             'phone' => 'required|string',
             'email' => [
@@ -127,7 +135,9 @@ class UserCtrl extends Controller
 
         $data = User::findOrFail($id);
         $data->role = $request->role;
-        $data->title = $request->title;
+        $data->title_th = $request->title_th;
+        $data->title_en = $request->title_en;
+        $data->title_ja = $request->title_ja;
         $data->contact_sale = $request->contact_sale;
         $data->name = $request->name;
         $data->email = $request->email;
