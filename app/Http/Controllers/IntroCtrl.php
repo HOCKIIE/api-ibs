@@ -10,16 +10,16 @@ class IntroCtrl extends Controller
     public function videoEffect()
     {
         try {
-            $prefix = '/storage/uploads/videos';
+            $prefix = 'storage/uploads/videos';
             $disk = Storage::disk(env('FILESYSTEM_DISK'));
-
+            
             // หาไฟล์ intro_video.*
-            $file = collect($disk->files('uploads/videos'))
-                ->first(fn($f) => str_starts_with(basename($f), 'intro_video.'));
+            $file = collect($disk->files($prefix))
+                ->first(fn ($f) => str_starts_with(basename($f), 'intro_video.'));
 
             $file = $disk->exists("$file")
-                ? "/$file"
-                : "$prefix/default_video.mp4";
+                ? "$file"
+                : "/$prefix/default_video.mp4";
             return response()->json($file, 200);
         } catch (\Exception $e) {
             Log::error($e->getMessage());
