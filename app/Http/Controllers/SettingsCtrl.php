@@ -19,7 +19,7 @@ class SettingsCtrl extends Controller
                 ->first(fn ($f) => str_starts_with(basename($f), 'intro_video.'));
 
             $file = $disk->exists("$file")
-                ? "$file"
+                ? "/$file"
                 : "/$prefix/default_video.mp4";
             return response()->json($file,200);
         } catch (\Throwable $th) {
