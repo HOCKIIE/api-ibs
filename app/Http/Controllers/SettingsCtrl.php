@@ -11,7 +11,7 @@ class SettingsCtrl extends Controller
     public function videoEffect()
     {
         try {
-            $prefix = '/uploads/videos';
+            $prefix = '/storage/uploads/videos';
             $disk = Storage::disk(env('FILESYSTEM_DISK'));
 
             $files = $disk->files('videos');
@@ -22,7 +22,7 @@ class SettingsCtrl extends Controller
 
             $file = $disk->exists("$prefix/$file")
                 ? "$prefix/$file"
-                : null;
+                : "$prefix/default_video.mp4";
             return response()->json($file,200);
         } catch (\Throwable $th) {
             Log::error($th->getMessage());
