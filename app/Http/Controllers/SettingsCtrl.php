@@ -13,8 +13,15 @@ class SettingsCtrl extends Controller
         try {
             $prefix = '/uploads/videos';
             $disk = Storage::disk(env('FILESYSTEM_DISK'));
-            $file = $disk->exists($prefix.'/intro_video.mp4') 
-                ? $prefix.'/intro_video.mp4'
+
+            $files = $disk->files('videos');
+
+            $file = collect($files)->first(fn ($f) =>
+                pathinfo($f, PATHINFO_FILENAME) === 'intro_video'
+            );
+
+            $file = $disk->exists("$prefix/$file")
+                ? "$prefix/$file"
                 : null;
             return response()->json($file,200);
         } catch (\Throwable $th) {
