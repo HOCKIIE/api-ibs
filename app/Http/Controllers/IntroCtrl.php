@@ -12,12 +12,10 @@ class IntroCtrl extends Controller
         try{
             $prefix = '/storage/uploads/videos';
             $disk = Storage::disk(env('FILESYSTEM_DISK'));
-
-            $files = $disk->files('videos');
-
-            $file = collect($files)->first(fn ($f) =>
-                pathinfo($f, PATHINFO_FILENAME) === 'intro_video'
-            );
+            
+            // หาไฟล์ intro_video.*
+            $file = collect($disk->files('videos'))
+                ->first(fn ($f) => str_starts_with(basename($f), 'intro_video.'));
 
             $file = $disk->exists("$prefix/$file")
                 ? "$prefix/$file"
