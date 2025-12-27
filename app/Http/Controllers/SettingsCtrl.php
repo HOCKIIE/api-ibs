@@ -11,15 +11,15 @@ class SettingsCtrl extends Controller
     public function videoEffect()
     {
         try {
-            $prefix = 'storage/uploads/videos';
+            $prefix = 'uploads/videos';
             $disk = Storage::disk(env('FILESYSTEM_DISK'));
             
             // หาไฟล์ intro_video.*
             $file = collect($disk->files($prefix))
                 ->first(fn ($f) => str_starts_with(basename($f), 'intro_video.'));
-
+            
             $file = $file
-                ? "/$file"
+                ? "$file"
                 : "/$prefix/default_video.mp4";
             return response()->json($file,200);
         } catch (\Throwable $th) {
