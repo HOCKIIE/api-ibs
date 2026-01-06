@@ -11,7 +11,7 @@ class SettingsCtrl extends Controller
     public function videoEffect()
     {
         try {
-            $prefix = 'uploads/videos';
+            $prefix = 'storage/uploads/videos';
             $disk = Storage::disk(env('FILESYSTEM_DISK'));
             
             // หาไฟล์ intro_video.*
