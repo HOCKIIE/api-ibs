@@ -220,30 +220,23 @@ class CategoryCtrl extends Controller
     public function destroy(Request $request)
     {
         try {
-            $id = $request->id;
-            $category = Category::findOrFail($id);
-            if (!$category) {
-                return response()->json([
-                    'status' => false,
-                    'message' => "Category not found",
-                ], 404);
-            }
+            $request->validate([
+                'id'   => 'required|array',
+                'id.*' => 'integer|exists:users,id',
+            ]);
 
-            $category->is_deleted = true;
-            if($category->save()) {
+            $categories = Category::findOrFail($request->id);
+
+            foreach ($categories as $category) {
+                $category->is_deleted = true;
+                $category->save();
                 $category->delete();
-                return response()->json([
-                    'status' => true,
-                    'statusCode' => 200,
-                    'message' => "Category deleted successfully",
-                ]);
-            }else{
-                return response()->json([
-                    'status' => false,
-                    'statusCode' => 200,
-                    'message' => "Failed to delete category",
-                ]);
             }
+            return response()->json([
+                'status' => true,
+                'statusCode' => 200,
+                'message' => "Category deleted successfully",
+            ]);
 
         } catch (\Exception $e) {
             Log::error($e->getMessage(), [
