@@ -41,7 +41,7 @@ class SettingsCtrl extends Controller
         try {
             if ($request->hasFile('video')) {
                 $file = $request->file('video');
-                $path = '/uploads/videos';
+                $path = '/storage/uploads/videos';
                 $filename = 'intro_video.' . $file->getClientOriginalExtension();
                 // $file->move(public_path('uploads/videos'), $filename);
                 Storage::disk('public')->putFileAs(
