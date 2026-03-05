@@ -34,7 +34,7 @@ class BlogCtrl extends Controller
 
             $data = $model
             ->select(
-                'id',
+                'id','draftId',
                 'title_th','title_en','title_ja',
                 'description_th','description_en','description_ja',
                 'created_at','updated_at','status','image','pathName','published_at'
@@ -108,8 +108,10 @@ class BlogCtrl extends Controller
             ]);
 
             $imagePath = null;
-            // Create a new blog post
+            $draftId = $request->draftId;
+
             $blog = Blog::create([
+                'draftId' => $request->draftId,
                 'title_th' => $request->title_th,
                 'title_en' => $request->title_en,
                 'title_ja' => $request->title_ja,
@@ -121,15 +123,37 @@ class BlogCtrl extends Controller
                 'detail_ja' => $request->detail_ja,
                 'pathName' => $request->pathName,
                 'recommend' => $request->has('recommend') && $request->recommend == 'true' ? 1 : 0,
-                'status' => $request->has('status') ? $request->status : 0,
+                'status' => $request->has('status') && $request->status === 'true' ? 1 : 0,
                 'published_at' => $request->has('published_at') ? now()->toDateTimeString() : NULL,
                 'created_at' => now()->toDateTimeString(),
             ]);
             // store category
             $blog->categories()->attach($request->category);
             if ($blog->id && $request->hasFile('image')) {
+                
                 $imagePath = $this->uploadImage($request, "blog/$blog->id");
-                Blog::where('id', $blog->id)->update(['image' => $imagePath]);
+                Blog::where('id', $blog->id)->update([
+                    'image' => $imagePath,
+                    'detail_th'=> Str::replace("blog/draft/$draftId", "blog/$blog->id", $request->detail_th),
+                    'detail_en'=> Str::replace("blog/draft/$draftId", "blog/$blog->id", $request->detail_en),
+                    'detail_ja'=> Str::replace("blog/draft/$draftId", "blog/$blog->id", $request->detail_ja),
+                ]);
+
+                $draftPath = "uploads/blog/draft/$draftId";
+                $finalPath = "uploads/blog/$blog->id";
+
+                // ถ้า draft folder มีอยู่ → ย้ายทั้ง folder
+                if (Storage::disk('public')->exists($draftPath)) {
+                    
+                    Storage::disk('public')->makeDirectory($finalPath);
+                    $files = Storage::disk('public')->allFiles("$draftPath");
+                    foreach ($files as $file) {
+                        $newPath = str_replace($draftPath, $finalPath, $file);
+                        Storage::disk('public')->move($file, $newPath);
+                    }
+                    Storage::disk('public')->deleteDirectory($draftPath);
+                }
+
                 return response()->json([
                     'status' => true,
                     'message' => 'Blog post created successfully',
@@ -149,7 +173,7 @@ class BlogCtrl extends Controller
     public function show(string $id)
     {
         try {
-            $data = Blog::with('categories')->findOrfail($id);
+            $data = Blog::with('categories')->with('category')->findOrfail($id);
             return response()->json((new BlogResource($data))->resolve());
         } catch (\Exception $e) {
             Log::error($e->getMessage());

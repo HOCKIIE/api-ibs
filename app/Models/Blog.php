@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use \App\Models\Category;
-use DateTimeInterface;
 
 class Blog extends Model
 {
@@ -12,6 +11,7 @@ class Blog extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'id',
+        'draftId',
         'image',
         'title_th',
         'title_en',
@@ -23,7 +23,8 @@ class Blog extends Model
         'detail_en',
         'detail_ja',
         'published_at',
-        'status'
+        'status',
+        'pathName'
     ];
     protected $dates = [
         'created_at',
@@ -45,6 +46,11 @@ class Blog extends Model
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'blog_category', 'blog_id', 'category_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsToMany(Category::class,'blog_category','blog_id','category_id');
     }
     
 }

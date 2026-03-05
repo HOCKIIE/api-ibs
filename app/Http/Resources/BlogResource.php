@@ -17,11 +17,15 @@ class BlogResource extends JsonResource
         // return parent::toArray($request);
         return [
             'id' => $this->id,
+            'draftId' => $this->draftId,
             'image' => $this->image,
             'title_th' => $this->title_th,
             'title_en' => $this->title_en,
             'title_ja' => $this->title_ja,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'category' => $this->whenLoaded('category', function () {
+                return $this->category->pluck('id');
+            }),
             'description_th' => $this->description_th,
             'description_en' => $this->description_en,
             'description_ja' => $this->description_ja,

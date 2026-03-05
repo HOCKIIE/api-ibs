@@ -16,7 +16,10 @@ class MediaCtrl extends Controller
         try{
             $type = $request->type;
             $id = $request->id;
-            $gallery = Storage::disk('public')->files('uploads/' . $type . '/' . $id);
+            $draftId = $request->draftId;
+            $thisDraft = $draftId ? 'draft' : '';
+            $path = $thisDraft ? "uploads/$type/draft/$draftId" : "uploads/$type/$id";
+            $gallery = Storage::disk('public')->files($path);
             return response()->json([
                 'status' => true,
                 'message' => 'Gallery fetched successfully',
@@ -44,13 +47,13 @@ class MediaCtrl extends Controller
         try {
             $request->validate([
                 'type' => 'required|string',
-                'id'   => 'required|integer',
                 'images' => 'required',
                 'images.*' => 'image|mimes:jpg,jpeg,png,gif|max:3072', // รองรับหลายไฟล์
             ]);
     
             $type = $request->type;
-            $id = $request->id;
+            $id = $request->draftId ? $request->draftId :$request->id;
+            $draft = $request->draftId ? 'draft' : '';
             $response = [
                 'status' => false,
                 'message' => 'No images uploaded',
@@ -63,12 +66,17 @@ class MediaCtrl extends Controller
                     $manager = new ImageManager(new GdDriver());
                     $image = $manager->read($file->getPathname());
                     $webpBinary = (string) $image->toWebp(80);
-                    Storage::disk('public')->put("uploads/$type/$id/$filename", $webpBinary);
+                    if($draft){
+                        $path = "uploads/$type/draft/$id";
+                    } else {
+                        $path = "uploads/$type/$id";
+                    }
+                    Storage::disk('public')->put("$path/$filename", $webpBinary);
                     $gallery[] = [
                         'id' => $id,
                         'selected' => true,
                         'type' => $type,
-                        'url' => "/storage/uploads/$type/$id/" . $filename,
+                        'url' => "/storage/$path/$filename",
                     ];
                 }
             }

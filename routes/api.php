@@ -13,9 +13,29 @@ use App\Http\Controllers\MediaCtrl;
 use App\Http\Controllers\OwnerCtrl;
 use App\Http\Controllers\SettingsCtrl;
 use App\Http\Controllers\IntroCtrl;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/',function(){
     return response()->json(['message'=>'Welcom to IBS Machinex API']);
+});
+Route::get('/test',function(){
+    $draftPath = "uploads/blog/draft/9f25a753-d607-4ac3-b8df-f9662cd279f2";
+    $finalPath = "uploads/blog/18";
+    // print_r("draft path: ".$files = Storage::disk('public')->allFiles("$draftPath"));
+    // return;
+    // ถ้า draft folder มีอยู่ → ย้ายทั้ง folder
+    if (Storage::disk('public')->exists($draftPath)) {
+        
+        // Storage::disk('public')->makeDirectory($finalPath);
+        $files = Storage::disk('public')->allFiles("$draftPath");
+        foreach ($files as $file) {
+            print('image file: '.$file);
+            $newPath = str_replace($draftPath, $finalPath, $file);
+            print('new path : '.$newPath);
+            Storage::disk('public')->move($file, $newPath);
+        }
+        Storage::disk('public')->deleteDirectory($draftPath);
+    }
 });
 
 Route::controller(AuthController::class)->group(function () {
