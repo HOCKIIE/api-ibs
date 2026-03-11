@@ -54,8 +54,13 @@ class Brand extends Model
         return $this->belongsToMany(Category::class, 'brand_category', 'brand_id', 'category_id');
     }
 
+    public function category()
+    {
+        return $this->belongsToMany(Category::class, 'brand_category', 'brand_id', 'category_id');
+    }
+
     public function product(){
-        return $this->hasMany(Product::class,'product_brand','brand_id','product_id');
+        return $this->hasMany(Product::class, 'product_brand', 'brand_id', 'product_id');
     }
 
     function getImageAttribute($value)

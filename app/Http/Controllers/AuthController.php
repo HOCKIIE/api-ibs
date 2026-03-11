@@ -22,7 +22,7 @@ class AuthController extends Controller
     protected $appURL = '';
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh','me', 'logout']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh', 'me', 'logout']]);
         $this->appURL = env('APP_ENV') === "development" ? env('APP_URL_DEV') : env('APP_URL_PROD');
     }
 
@@ -46,26 +46,26 @@ class AuthController extends Controller
             $refreshToken = JWTAuth::encode($payload)->get();
 
             return response()
-            ->json([
-                'status' => 'success',
-                'user' => $user,
-                'authorisation' => [
-                    'accessToken' => $token,
-                    'type' => 'bearer',
-                ]
-            ])
-            ->cookie(
-                'accessToken',  // name
-                $token,  // value
-                60,  // expire
-                '/',  // path
-                $this->appURL,  // domain
-                true,  // secure
-                true,  // HttpOnly ✅
-                false,  // raw
-                'None' // SameSite
-            )
-            ->cookie('refreshToken', $refreshToken, 1440, '/', $this->appURL, true, true, false, 'None');
+                ->json([
+                    'status' => 'success',
+                    'user' => $user,
+                    'authorisation' => [
+                        'accessToken' => $token,
+                        'type' => 'bearer',
+                    ]
+                ])
+                ->cookie(
+                    'accessToken',  // name
+                    $token,  // value
+                    1,  // expire (minutes)
+                    '/',  // path
+                    $this->appURL,  // domain
+                    true,  // secure
+                    true,  // HttpOnly ✅
+                    false,  // raw
+                    'None' // SameSite
+                )
+                ->cookie('refreshToken', $refreshToken, 1440, '/', $this->appURL, true, true, false, 'None');
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
         }
@@ -124,29 +124,28 @@ class AuthController extends Controller
     {
 
         return response()->json(['message' => 'Logged out'])
-        ->cookie(
-            'accessToken', // name
-            '', // value
-            -1, // expire
-            '/', // path
-            $this->appURL, //localhost // domain
-            true, // secure
-            true, // HttpOnly ✅
-            false, // raw
-            'None' // SameSite
-        )
-        ->cookie(
-            'refreshToken', // name
-            '', // value
-            -1, // expire
-            '/', // path
-            $this->appURL, //localhost // domain
-            true, // secure
-            true, // HttpOnly ✅
-            false, // raw
-            'None' // SameSite
-        );
-
+            ->cookie(
+                'accessToken', // name
+                '', // value
+                -1, // expire
+                '/', // path
+                $this->appURL, //localhost // domain
+                true, // secure
+                true, // HttpOnly ✅
+                false, // raw
+                'None' // SameSite
+            )
+            ->cookie(
+                'refreshToken', // name
+                '', // value
+                -1, // expire
+                '/', // path
+                $this->appURL, //localhost // domain
+                true, // secure
+                true, // HttpOnly ✅
+                false, // raw
+                'None' // SameSite
+            );
     }
 
     public function refresh(Request $request)
@@ -162,19 +161,18 @@ class AuthController extends Controller
 
             return response()->json(['message' => 'Token refreshed'])
                 ->cookie(
-                'accessToken',  // name
-                $newAccessToken,  // value
-                60,  // expire
-                '/',  // path
-                $this->appURL,  // domain
-                true,  // secure
-                true,  // HttpOnly ✅
-                false,  // raw
-                'None'  // SameSite
-            );
-
+                    'accessToken',  // name
+                    $newAccessToken,  // value
+                    60,  // expire
+                    '/',  // path
+                    $this->appURL,  // domain
+                    true,  // secure
+                    true,  // HttpOnly ✅
+                    false,  // raw
+                    'None'  // SameSite
+                );
         } catch (JWTException $e) {
-            return response()->json(['status'=>false,'message' => 'Token expired or invalid'], 401);
+            return response()->json(['status' => false, 'message' => 'Token expired or invalid'], 401);
         }
     }
 }

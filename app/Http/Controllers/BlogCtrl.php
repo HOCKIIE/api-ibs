@@ -252,9 +252,9 @@ class BlogCtrl extends Controller
     {
         try {
             $data = Blog::findOrfail($id);
-            if ($data->image) {
-                Storage::disk(env('FILESYSTEM_DISK'))->delete($data->image);
-            }
+            // if ($data->image) {
+            //     Storage::disk('public')->delete($data->image);
+            // }
             $data->delete();
             return response()->json([
                 'status' => true,

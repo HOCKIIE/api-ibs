@@ -21,17 +21,10 @@ Route::get('/',function(){
 Route::get('/test',function(){
     $draftPath = "uploads/blog/draft/9f25a753-d607-4ac3-b8df-f9662cd279f2";
     $finalPath = "uploads/blog/18";
-    // print_r("draft path: ".$files = Storage::disk('public')->allFiles("$draftPath"));
-    // return;
-    // ถ้า draft folder มีอยู่ → ย้ายทั้ง folder
     if (Storage::disk('public')->exists($draftPath)) {
-        
-        // Storage::disk('public')->makeDirectory($finalPath);
         $files = Storage::disk('public')->allFiles("$draftPath");
         foreach ($files as $file) {
-            print('image file: '.$file);
             $newPath = str_replace($draftPath, $finalPath, $file);
-            print('new path : '.$newPath);
             Storage::disk('public')->move($file, $newPath);
         }
         Storage::disk('public')->deleteDirectory($draftPath);
@@ -90,22 +83,25 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::controller(CategoryCtrl::class)->group(function () {
             Route::get('/category', 'index');
             Route::post('/category/store', 'store');
+            Route::put('/category/status/{id}', 'changeStatus')->where(['id' => '[0-9]+']);
             Route::get('/category/show/{id}', 'show')->where(['id' => '[0-9]+']);
             Route::put('/category/update/{id}', 'update')->where(['id' => '[0-9]+']);
-            Route::delete('/category/destroy', 'destroy');
+            Route::delete('/category/destroy/{id}', 'destroy')->where(['id' => '[0-9]+']);
         });
         Route::controller(BrandCtrl::class)->group(function () {
             Route::get('/brand', 'index');
             Route::post('/brand/store', 'store');
             Route::get('/brand/show/{id}', 'show')->where(['id' => '[0-9]+']);
             Route::put('/brand/update/{id}', 'update')->where(['id' => '[0-9]+']);
-            Route::delete('/brand/destroy', 'destroy');
+            Route::put('/brand/status/{id}', 'changeStatus')->where(['id' => '[0-9]+']);
+            Route::delete('/brand/destroy/{id}', 'destroy')->where(['id' => '[0-9]+']);
         });
         Route::controller(UserCtrl::class)->group(function () {
             Route::get('/user', 'index');
             Route::post('/user/store', 'store');
             Route::get('/user/show/{id}', 'show')->where(['id' => '[0-9]+']);
             Route::put('/user/update/{id}', 'update')->where(['id' => '[0-9]+']);
+            Route::put('/user/status/{id}', 'changeStatus')->where(['id' => '[0-9]+']);
             Route::delete('/user/destroy', 'destroy');
         });
         Route::controller(BlogCtrl::class)->group(function () {

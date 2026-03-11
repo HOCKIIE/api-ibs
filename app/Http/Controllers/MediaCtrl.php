@@ -53,7 +53,7 @@ class MediaCtrl extends Controller
     
             $type = $request->type;
             $id = $request->draftId ? $request->draftId :$request->id;
-            $draft = $request->draftId ? 'draft' : '';
+            $draft = $request->draftId ? true : false;
             $response = [
                 'status' => false,
                 'message' => 'No images uploaded',

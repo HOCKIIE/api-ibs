@@ -31,7 +31,10 @@ class BrandResource extends JsonResource
             'detail_ja' => $this->detail_ja,
             'website' => $this->website,
             'apiName' => $this->apiName,
-            'categories'=> CategoryResource::collection($this->whenLoaded('categories')),
+            'categories' => CategoryResource::collection($this->whenLoaded('categories')),
+            'category' => $this->whenLoaded('categories', function(){
+                return $this->category->pluck('id');
+            }),
             'status' => $this->status,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),

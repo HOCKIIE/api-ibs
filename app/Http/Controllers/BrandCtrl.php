@@ -208,6 +208,37 @@ class BrandCtrl extends Controller
             ], 500);
         }
     }
+
+    public function changeStatus(Request $request, $id)
+    {
+        try{
+            $data = Brand::findOrFail($id);
+            $data->status  = $request->changeTo;
+            if($data->save()){
+                return response()->json([
+                    'status' => true,
+                    'statusCode' => 200,
+                    'message' => 'Success, Status has been updated.'
+                ]);
+            }else{
+                return response()->json([ 'status' => false, 'statusCode' => 500, 'message' => 'Invalid ID.']);
+            }
+
+        } catch (\Exception $e) {
+            Log::error($e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'status' => false,
+                'statusCode' => $e->getCode(),
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
     public function destroy($id)
     {
         try {

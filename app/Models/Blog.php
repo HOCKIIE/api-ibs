@@ -3,10 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use \App\Models\Category;
 
 class Blog extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $table = 'blog';
     protected $primaryKey = 'id';
     protected $fillable = [
@@ -50,7 +54,7 @@ class Blog extends Model
 
     public function category()
     {
-        return $this->belongsToMany(Category::class,'blog_category','blog_id','category_id');
+        return $this->belongsToMany(Category::class, 'blog_category', 'blog_id', 'category_id');
     }
     
 }
