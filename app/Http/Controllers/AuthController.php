@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -20,10 +19,23 @@ use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     protected $appURL = '';
+    protected $tokenExpire = '';
+    protected $cookie = '';
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh', 'me', 'logout']]);
         $this->appURL = env('APP_ENV') === "development" ? env('APP_URL_DEV') : env('APP_URL_PROD');
+        $this->tokenExpire = 15;
+        $this->cookie = [
+            "name" => "accessToken",
+            "expire" => 15, // minute
+            "path" => "/",
+            "domain" => $this->appURL,
+            "secure" => true,
+            "HttpOnly" => true,
+            "raw" => false,
+            "SameSite" => "none"
+        ];
     }
 
     public function login(Request $request)
@@ -55,24 +67,28 @@ class AuthController extends Controller
                     ]
                 ])
                 ->cookie(
-                    'accessToken',  // name
-                    $token,  // value
-                    1,  // expire (minutes)
-                    '/',  // path
-                    $this->appURL,  // domain
-                    true,  // secure
-                    true,  // HttpOnly ✅
-                    false,  // raw
-                    'None' // SameSite
+                    cookie(
+                        $this->cookie['name'],
+                        $token,  // value
+                        $this->cookie['expire'],
+                        $this->cookie['path'], 
+                        $this->cookie['domain'],
+                        $this->cookie['secure'],
+                        $this->cookie['HttpOnly'],
+                        $this->cookie['raw'],
+                        $this->cookie['SameSite']
+                    )
                 )
-                ->cookie('refreshToken', $refreshToken, 1440, '/', $this->appURL, true, true, false, 'None');
+                ->cookie(cookie('refreshToken', $refreshToken, 1440, '/', $this->appURL, true, true, false, 'None'));
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json($e->getMessage());
         }
     }
     public function me(Request $request)
     {
         $token = $request->cookie('accessToken');
+        // $token = $request->header('accessToken');
         if (!$token) {
             return response()->json(['message' => 'Unauthenticated (no token)'], 401);
         }
@@ -114,7 +130,7 @@ class AuthController extends Controller
             'message' => 'User created successfully',
             'user' => $user,
             'authorisation' => [
-                'accessToken' => $token,
+                "$this->config->cookie->name" => $token,
                 'type' => 'bearer',
             ]
         ]);
@@ -125,54 +141,60 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Logged out'])
             ->cookie(
-                'accessToken', // name
+                $this->cookie['name'], // name
                 '', // value
                 -1, // expire
-                '/', // path
-                $this->appURL, //localhost // domain
-                true, // secure
-                true, // HttpOnly ✅
-                false, // raw
-                'None' // SameSite
+                $this->cookie['path'], // path
+                $this->cookie['domain'], //localhost // domain
+                $this->cookie['secure'], // secure
+                $this->cookie['HttpOnly'], // HttpOnly ✅
+                $this->cookie['raw'], // raw
+                $this->cookie['SameSite'] // SameSite
             )
             ->cookie(
-                'refreshToken', // name
+                $this->cookie['name'], // name
                 '', // value
                 -1, // expire
-                '/', // path
-                $this->appURL, //localhost // domain
-                true, // secure
-                true, // HttpOnly ✅
-                false, // raw
-                'None' // SameSite
+                $this->cookie['path'], // path
+                $this->cookie['domain'], //localhost // domain
+                $this->cookie['secure'], // secure
+                $this->cookie['HttpOnly'], // HttpOnly ✅
+                $this->cookie['raw'], // raw
+                $this->cookie['SameSite'] // SameSite
             );
     }
 
     public function refresh(Request $request)
     {
         $refreshToken = $request->cookie('refreshToken');
+        if (!$refreshToken) {
+            return response()->json(['message' => 'No refresh token'], 401);
+        }
         try {
-            $payload = JWTAuth::setToken($refreshToken)->getPayload();
-            if ($payload['type'] !== 'refresh') {
-                return response()->json(['message' => 'Invalid refresh token'], 401);
-            }
-            $user = JWTAuth::setToken($refreshToken)->authenticate();
-            $newAccessToken = JWTAuth::fromUser($user);
 
-            return response()->json(['message' => 'Token refreshed'])
+            $payload = JWTAuth::setToken($refreshToken)->getPayload();
+            if ($payload->get('type') !== 'refresh') {
+                throw new \Exception('Invalid token');
+            }
+            $userId = $payload->get('sub');
+            $newAccessToken = JWTAuth::fromUser(User::find($userId));
+            return response()
+                ->json(['status' => 'success'])
                 ->cookie(
-                    'accessToken',  // name
-                    $newAccessToken,  // value
-                    60,  // expire
-                    '/',  // path
-                    $this->appURL,  // domain
-                    true,  // secure
-                    true,  // HttpOnly ✅
-                    false,  // raw
-                    'None'  // SameSite
+                    Cookie(
+                        $this->cookie['name'],
+                        $newAccessToken,
+                        $this->cookie['expire'],
+                        $this->cookie['path'], 
+                        $this->cookie['domain'],
+                        $this->cookie['secure'],
+                        $this->cookie['HttpOnly'],
+                        $this->cookie['raw'],
+                        $this->cookie['SameSite']
+                    )
                 );
-        } catch (JWTException $e) {
-            return response()->json(['status' => false, 'message' => 'Token expired or invalid'], 401);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Refresh failed'], 401);
         }
     }
 }

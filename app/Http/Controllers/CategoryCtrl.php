@@ -251,7 +251,7 @@ class CategoryCtrl extends Controller
         try {
             $request->validate([
                 'id'   => 'required|array',
-                'id.*' => 'integer|exists:users,id',
+                'id.*' => 'integer|exists:category,id',
             ]);
 
             $categories = Category::findOrFail($request->id);

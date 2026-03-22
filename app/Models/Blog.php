@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use \App\Models\Category;
+use \App\Casts\JsonUnicode;
 
 class Blog extends Model
 {
@@ -16,7 +17,9 @@ class Blog extends Model
     protected $fillable = [
         'id',
         'draftId',
-        'image',
+        'image_th',
+        'image_en',
+        'image_ja',
         'title_th',
         'title_en',
         'title_ja',
@@ -26,6 +29,9 @@ class Blog extends Model
         'detail_th',
         'detail_en',
         'detail_ja',
+        'descendant_th',
+        'descendant_en',
+        'descendant_ja',
         'published_at',
         'status',
         'pathName'
@@ -36,16 +42,13 @@ class Blog extends Model
         'updated_at',
         'deleted_at',
     ];
+    protected $casts = [
+        'descendant_th' => JsonUnicode::class,
+        'descendant_en' => JsonUnicode::class,
+        'descendant_ja' => JsonUnicode::class,
+    ];
 
     public $timestamps = true;
-
-    function getImageAttribute($value)
-    {
-        if ($value) {
-            return asset($value);
-        }
-        return null;
-    }
 
     public function categories()
     {
@@ -55,6 +58,25 @@ class Blog extends Model
     public function category()
     {
         return $this->belongsToMany(Category::class, 'blog_category', 'blog_id', 'category_id');
+    }
+
+    function getImageAttribute($value)
+    {
+        return ($value) ? asset($value): null;
+    }
+    public function getImageThAttribute($value)
+    {
+        return $value ? asset($value) : null;
+    }
+
+    public function getImageEnAttribute($value)
+    {
+        return $value ? asset($value) : null;
+    }
+
+    public function getImageJaAttribute($value)
+    {
+        return $value ? asset($value) : null;
     }
     
 }

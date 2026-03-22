@@ -109,7 +109,9 @@ Route::middleware(['jwt.auth'])->group(function () {
             Route::post('/blog/store', 'store');
             Route::get('/blog/show/{id}', 'show')->where(['id' => '[0-9]+']);
             Route::put('/blog/update/{id}', 'update')->where(['id' => '[0-9]+']);
-            Route::delete('/blog/destroy/{id}', 'destroy')->where(['id' => '[0-9]+']);
+            Route::put('/blog/status/{id}', 'changeStatus')->where(['id' => '[0-9]+']);
+            Route::delete('/blog/destroy', 'destroy');
+            // Route::delete('/blog/destroy/{id}', 'destroy')->where(['id' => '[0-9]+']);
         });
         Route::controller(ProductCtrl::class)->group(function () {
             Route::get('/product', 'index');

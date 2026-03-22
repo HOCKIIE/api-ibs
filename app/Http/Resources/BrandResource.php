@@ -15,8 +15,6 @@ class BrandResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // return parent::toArray($request);
-        // $this->website ? url('/api/proxy?url')."=".$this->website : null
         return [
             'id' => $this->id,
             'image' => $this->image,
@@ -29,6 +27,9 @@ class BrandResource extends JsonResource
             'detail_th' => $this->detail_th,
             'detail_en' => $this->detail_en,
             'detail_ja' => $this->detail_ja,
+            'descendant_th' => $this->descendant_th,
+            'descendant_en' => $this->descendant_en,
+            'descendant_ja' => $this->descendant_ja,
             'website' => $this->website,
             'apiName' => $this->apiName,
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),

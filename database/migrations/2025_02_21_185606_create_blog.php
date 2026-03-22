@@ -17,7 +17,10 @@ return new class extends Migration
                 $table->charset('utf8');
                 $table->collation('utf8_general_ci');
                 $table->id();
-                $table->text('image')->nullable()->default(null)->comment('Image');
+                $table->text('draftId')->nullable()->default(null)->comment('Draft ID');
+                $table->text('image_th')->nullable()->default(null)->comment('Image TH');
+                $table->text('image_en')->nullable()->default(null)->comment('Image EN');
+                $table->text('image_ja')->nullable()->default(null)->comment('Image JA');
                 $table->text('title_th')->nullable()->default(null)->comment('Title TH');
                 $table->text('title_en')->nullable()->default(null)->comment('Title EN');
                 $table->text('title_ja')->nullable()->default(null)->comment('Title JA');

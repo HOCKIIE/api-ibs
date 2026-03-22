@@ -114,6 +114,9 @@ class BrandCtrl extends Controller
             $data->detail_th = $request->detail_th;
             $data->detail_en = $request->detail_en;
             $data->detail_ja = $request->detail_ja;
+            $data->descendant_th = json_decode($request->descendant_th,true);
+            $data->descendant_en = json_decode($request->descendant_en,true);
+            $data->descendant_ja = json_decode($request->descendant_ja,true);
             $data->website = $request->website;
             $data->apiName = $request->apiName;
             $data->status = $request->status || 0;
@@ -159,7 +162,7 @@ class BrandCtrl extends Controller
                 'description_th' => 'required|string',
                 'description_en' => 'required|string',
                 'description_ja' => 'required|string',
-                'apiName' => 'required|string|max:255|unique:brand,apiName',
+                'apiName' => 'required|string|max:255|unique:brand,apiName,'.$id,
                 'category' => 'exists:category,id', // Validate category as an array of existing IDs
             ]);
 
@@ -173,9 +176,12 @@ class BrandCtrl extends Controller
             $data->detail_th = $request->detail_th;
             $data->detail_en = $request->detail_en;
             $data->detail_ja = $request->detail_ja;
+            $data->descendant_th = json_decode($request->descendant_th,true);
+            $data->descendant_en = json_decode($request->descendant_en,true);
+            $data->descendant_ja = json_decode($request->descendant_ja,true);
             $data->website = $request->website;
             $data->apiName = $request->apiName;
-            $data->status = (bool) $request->input('status');
+            $data->status = $request->status;
             $categories = $request->input('category', []);
 
             // Save the updated data
