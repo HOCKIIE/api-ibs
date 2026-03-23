@@ -77,7 +77,7 @@ Route::get('/gallery',[MediaCtrl::class,'gallery']);
 Route::delete('/gallery/delete',[MediaCtrl::class,'deleteImage']);
 Route::put('/gallery/upload',[MediaCtrl::class,'imageUploads']);
 
-Route::middleware(['jwt.auth'])->group(function () {
+Route::middleware(['jwt.cookie','jwt.auth'])->group(function () {
     Route::prefix('admin')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::controller(CategoryCtrl::class)->group(function () {
