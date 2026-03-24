@@ -252,7 +252,7 @@ class BrandCtrl extends Controller
         try {
             $request->validate([
                 'id'   => 'required|array',
-                'id.*' => 'integer|exists:users,id',
+                'id.*' => 'integer|exists:brand,id',
             ]);
 
             $data = $this->model::whereIn('id',$request->id)->get();

@@ -169,13 +169,8 @@ class UserCtrl extends Controller
                 'id.*' => 'integer|exists:users,id',
             ]);
 
-            $data = $this->model::whereIn('id',$request->id)->get();
+            $data = $this->model::whereIn('id',$request->id)->delete();
 
-            foreach ($data as $item) {
-                $item->is_deleted = true;
-                $item->save();
-                $item->delete();
-            }
             return response()->json([
                 'status' => true,
                 'message' => 'Blog post deleted successfully',
