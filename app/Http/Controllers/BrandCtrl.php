@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 class BrandCtrl extends Controller
 {
+    protected $model;
     protected $imageWidth;
     protected $imageHeight;
 
@@ -20,6 +21,7 @@ class BrandCtrl extends Controller
     {
         $this->imageWidth = env('BRAND_IMAGE_WIDTH', 1000);
         $this->imageHeight = env('BRAND_IMAGE_HEIGHT', 1000);
+        $this->model = new Brand;
     }
 
     public function index(Request $request)
@@ -245,23 +247,27 @@ class BrandCtrl extends Controller
     }
 
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
         try {
-            $brand = Brand::findOrFail($id);
-            // Delete the image if it exists
-            if ($brand->image) {
-                Storage::delete($brand->image);
+            $request->validate([
+                'id'   => 'required|array',
+                'id.*' => 'integer|exists:users,id',
+            ]);
+
+            $data = $this->model::whereIn('id',$request->id)->get();
+
+            foreach ($data as $item) {
+                $item->is_deleted = true;
+                $item->save();
+                $item->delete();
             }
-            // Soft delete the brand
-            $brand->delete();
             return response()->json([
                 'status' => true,
-                'message' => 'Brand deleted successfully.',
+                'message' => 'Blog post deleted successfully',
             ], 200);
         } catch (\Exception $e) {
-            Log::error($e->getMessage(), ['user' => 123]);
-            Log::warning($e->getMessage()); // จะลงแค่ไฟล์, ไม่ลง DB
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),

@@ -8,12 +8,18 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\UserResource;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class UserCtrl extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    protected $model;
+    function __construct()
+    {
+        $this->model = new User;
+    }
     public function index(Request $request)
     {
         $model = new User();
@@ -157,14 +163,29 @@ class UserCtrl extends Controller
      */
     public function destroy(Request $request)
     {
-        $id = explode(',',$request->id);
-        User::whereIn('id',$id)->update(['status'=>0]);
-        if(count($id) > 0){
-            if(User::whereIn('id',$id)->delete()){
-                return response()->json(["status"=>true,"message"=>"Deleted!"],200);
-            }else{
-                return response()->json(["status"=>true,"message"=>"An error occurred!"],500);
+        try {
+            $request->validate([
+                'id'   => 'required|array',
+                'id.*' => 'integer|exists:users,id',
+            ]);
+
+            $data = $this->model::whereIn('id',$request->id)->get();
+
+            foreach ($data as $item) {
+                $item->is_deleted = true;
+                $item->save();
+                $item->delete();
             }
+            return response()->json([
+                'status' => true,
+                'message' => 'Blog post deleted successfully',
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 }
