@@ -86,7 +86,7 @@ Route::middleware(['jwt.cookie','jwt.auth'])->group(function () {
             Route::put('/category/status/{id}', 'changeStatus')->where(['id' => '[0-9]+']);
             Route::get('/category/show/{id}', 'show')->where(['id' => '[0-9]+']);
             Route::put('/category/update/{id}', 'update')->where(['id' => '[0-9]+']);
-            Route::delete('/category/destroy/{id}', 'destroy')->where(['id' => '[0-9]+']);
+            Route::delete('/category/destroy', 'destroy');
         });
         Route::controller(BrandCtrl::class)->group(function () {
             Route::get('/brand', 'index');
@@ -94,7 +94,7 @@ Route::middleware(['jwt.cookie','jwt.auth'])->group(function () {
             Route::get('/brand/show/{id}', 'show')->where(['id' => '[0-9]+']);
             Route::put('/brand/update/{id}', 'update')->where(['id' => '[0-9]+']);
             Route::put('/brand/status/{id}', 'changeStatus')->where(['id' => '[0-9]+']);
-            Route::delete('/brand/destroy/{id}', 'destroy')->where(['id' => '[0-9]+']);
+            Route::delete('/brand/destroy', 'destroy');
         });
         Route::controller(UserCtrl::class)->group(function () {
             Route::get('/user', 'index');
@@ -118,7 +118,7 @@ Route::middleware(['jwt.cookie','jwt.auth'])->group(function () {
             Route::post('/product/store', 'store');
             Route::get('/product/show/{id}', 'show')->where(['id' => '[0-9]+']);
             Route::put('/product/update/{id}', 'update')->where(['id' => '[0-9]+']);
-            Route::delete('/product/destroy/{id}', 'destroy')->where(['id' => '[0-9]+']);
+            Route::delete('/product/destroy', 'destroy');
         });
         Route::controller(ContactUsCtrl::class)->group(function () {
             Route::get('/contact', 'index');

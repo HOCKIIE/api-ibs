@@ -5,15 +5,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-// use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
-// use Illuminate\Routing\Exceptions\InvalidSignatureException;
-// use Illuminate\Foundation\Http\Middleware\TrimStrings;
-// use Illuminate\Http\Exceptions\HttpResponseException;
-// use Illuminate\Routing\Middleware\SubstituteBindings;
-// use Illuminate\Http\Middleware\SetCacheHeaders;
-// use Illuminate\Validation\ValidationException;
-// use Illuminate\Http\Middleware\TrustProxies;
-// use Illuminate\Http\Middleware\HandleCors;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -40,17 +31,4 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => $e->getMessage() ?: 'Server Error',
             ], $statusCode);
         });
-        // $exceptions->render(function (HttpException $e) {
-        //     return response()->json([
-        //         'message' => $e->getMessage(), 
-        //         'statusCode'=>$e->getStatusCode()
-        //     ], $e->getStatusCode());
-        // });
-        // $exceptions->render(function (HttpException $e) {
-        //     return response()->json([
-        //         'status' => $e->getCode(),
-        //         'statusCode' => $e->getCode(),
-        //         'message' => $e->getMessage(),
-        //     ]);
-        // });
     })->create();
