@@ -392,9 +392,10 @@ class BlogCtrl extends Controller
             $limit = $request->limit ? $request->limit : 6;
             $data = Blog::select(
                 'id',
+                'image_th','image_en','image_ja',
                 'title_th','title_en','title_ja',
                 'description_th','description_en','description_ja',
-                'created_at','updated_at','status','image','pathName','published_at'
+                'created_at','updated_at','status','pathName','published_at'
             )
             ->where('status',1)
             ->whereNotNull('published_at')
@@ -512,9 +513,10 @@ class BlogCtrl extends Controller
             $category = $request->category;
             $data = $this->model::select(
                 'id',
+                'image_th','image_en','image_ja',
                 'title_th','title_en','title_ja',
                 'description_th','description_en','description_ja',
-                'created_at','updated_at','status','image','pathName','published_at'
+                'created_at','updated_at','status','pathName','published_at'
             )
             ->where('stauts',1)
             ->whereNotNul('published_at')
@@ -550,9 +552,10 @@ class BlogCtrl extends Controller
         try {
             $data = $this->model::select(
                 'id',
+                'image_th','image_en','image_ja',
                 'title_th','title_en','title_ja',
                 'description_th','description_en','description_ja',
-                'created_at','updated_at','status','image','pathName','published_at'
+                'created_at','updated_at','status','pathName','published_at'
             )
             ->where('status',1)
             ->where('recommend',1)

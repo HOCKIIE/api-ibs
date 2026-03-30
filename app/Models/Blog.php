@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use \App\Models\Category;
 use \App\Casts\JsonUnicode;
+use \App\Models\Category;
 
 class Blog extends Model
 {
@@ -64,6 +63,7 @@ class Blog extends Model
     {
         return ($value) ? asset($value): null;
     }
+    
     public function getImageThAttribute($value)
     {
         return $value ? asset($value) : null;
