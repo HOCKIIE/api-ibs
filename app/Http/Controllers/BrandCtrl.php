@@ -10,6 +10,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver as GdDriver;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class BrandCtrl extends Controller
 {
@@ -89,7 +90,7 @@ class BrandCtrl extends Controller
     {
         try {
             // Validate the request data
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'title_th' => 'required|string|max:255',
                 'title_en' => 'required|string|max:255',
@@ -100,6 +101,15 @@ class BrandCtrl extends Controller
                 'apiName' => 'required|string|max:255|unique:brand,apiName',
                 'category' => 'exists:category,id', // Validate category as an array of existing IDs
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'statusCode' => 422,
+                    'message' => 'Validation error',
+                    'errors' => $validator->errors()
+                ], 200);
+            }
 
             // Handle image upload
             $path = $request->file('image')->store('images/brand');
@@ -144,6 +154,7 @@ class BrandCtrl extends Controller
             }
 
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
@@ -210,6 +221,7 @@ class BrandCtrl extends Controller
 
             
         } catch (\Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status' => false,
                 'message' => $e->getMessage(),
