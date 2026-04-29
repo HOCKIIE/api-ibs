@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Product;
+use \App\Casts\JsonUnicode;
 use \App\Models\Category;
 
 class Brand extends Model
@@ -25,26 +25,25 @@ class Brand extends Model
         'detail_th',
         'detail_en',
         'detail_jp',
+        'descendant_th',
+        'descendant_en',
+        'descendant_ja',
         'status',
         'website',
         'apiName',
         'is_deleted',
     ];
-    protected $casts = [
-        'image' => 'string',
-        'title_th' => 'string',
-        'title_en' => 'string',
-        'title_jp' => 'string',
-        'description_th' => 'string',
-        'description_en' => 'string',
-        'description_jp' => 'string',
-        'status' => 'boolean',
-        'is_deleted' => 'boolean',
-    ];
     protected $dates = [
         'created_at',
+        'published_at',
         'updated_at',
         'deleted_at',
+    ];
+
+    protected $casts = [
+        'descendant_th' => JsonUnicode::class,
+        'descendant_en' => JsonUnicode::class,
+        'descendant_ja' => JsonUnicode::class,
     ];
 
     public $timestamps = true;
@@ -57,10 +56,6 @@ class Brand extends Model
     public function category()
     {
         return $this->belongsToMany(Category::class, 'brand_category', 'brand_id', 'category_id');
-    }
-
-    public function product(){
-        return $this->hasMany(Product::class, 'product_brand', 'brand_id', 'product_id');
     }
 
     function getImageAttribute($value)
