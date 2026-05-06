@@ -60,9 +60,13 @@ class Brand extends Model
 
     function getImageAttribute($value)
     {
-        if ($value) {
-            return asset($value);
-        }
+        if ($value) return asset($value);
+        return null;
+    }
+
+    function getBannerAttribute($value)
+    {
+        if ($value) return asset($value);
         return null;
     }
 

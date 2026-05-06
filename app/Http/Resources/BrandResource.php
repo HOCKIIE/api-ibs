@@ -18,6 +18,7 @@ class BrandResource extends JsonResource
         return [
             'id' => $this->id,
             'image' => $this->image,
+            'banner' => $this->banner,
             'title_th' => $this->title_th,
             'title_en' => $this->title_en,
             'title_ja' => $this->title_ja,
@@ -36,7 +37,8 @@ class BrandResource extends JsonResource
             'category' => $this->whenLoaded('categories', function(){
                 return $this->category->pluck('id');
             }),
-            'status' => $this->status,
+            'status' => $this->status == 1 ? true : false,
+            "is_iframe" => $this->is_iframe == 1 ? true : false,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
         ];

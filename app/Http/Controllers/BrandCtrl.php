@@ -132,10 +132,17 @@ class BrandCtrl extends Controller
             $data->website = $request->website;
             $data->apiName = $request->apiName;
             $data->status = $request->status || 0;
+            if($request->has('is_iframe')){
+                $data->is_iframe = $request->is_iframe;
+            }   
             
             if($data->save())
             {
                 $data->categories()->attach($request->category);
+                if($request->hasFile("banner")){
+                    $data->banner = $this->uploadTheCroppedImage($request->file('banner'), $data->id);
+                    $data->save();
+                }
                 if($request->hasFile('image')){
                     // Store the image and get its path
                     $data->image = $this->uploadImage($request->file('image'), $data->id);
@@ -195,6 +202,9 @@ class BrandCtrl extends Controller
             $data->website = $request->website;
             $data->apiName = $request->apiName;
             $data->status = $request->status;
+            if($request->has('is_iframe')){
+                $data->is_iframe = $request->is_iframe;
+            } 
             $categories = $request->input('category', []);
 
             // Save the updated data
@@ -205,6 +215,14 @@ class BrandCtrl extends Controller
                     $image = Str::after($data->image, '/storage/');
                     Storage::disk('public')->delete($image);
                     $data->image = $this->uploadImage($request->file('image'), $id);
+                    $data->save();
+                }
+                if($request->hasFile("banner")){
+                    if($data->banner){
+                        $banner = Str::after($data->banner, '/storage/');
+                        Storage::disk('public')->delete($banner);
+                    }
+                    $data->banner = $this->uploadTheCroppedImage($request->file('banner'), $id);
                     $data->save();
                 }
                 return response()->json([
@@ -308,6 +326,16 @@ class BrandCtrl extends Controller
 
         $webpBinary = (string) $image->toWebp(80);
         Storage::disk('public')->put("uploads/brand/$id/$filename", $webpBinary);
+        return "/storage/uploads/brand/$id/$filename";
+    }
+
+    public function uploadTheCroppedImage($image=null, $id = null)
+    {
+        $file = $image;
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $manager = new ImageManager(new GdDriver());
+        $image = $manager->read($file->getPathname());
+        Storage::disk('public')->put("uploads/brand/$id/$filename", (string) $image->encode());
         return "/storage/uploads/brand/$id/$filename";
     }
 
